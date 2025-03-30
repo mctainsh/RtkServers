@@ -29,9 +29,9 @@ void LoadBaseLocation();
 
 WiFiManager _wifiManager;
 
-unsigned long _loopWaitTime = 0;		// Time of last second
-int _loopPersSecondCount = 0;			// Number of times the main loops runs in a second
-unsigned long _lastButtonPress = 0;		// Time of last button press to turn off display on T-Display-S3
+unsigned long _loopWaitTime = 0;		 // Time of last second
+int _loopPersSecondCount = 0;			 // Number of times the main loops runs in a second
+unsigned long _lastButtonPress = 0;		 // Time of last button press to turn off display on T-Display-S3
 unsigned long _recheckWifiAliveTime = 0; // Time we last checked for wifi alive
 
 WebPortal _webPortal;
@@ -150,8 +150,17 @@ void loop()
 	_loopPersSecondCount++;
 	if ((t - _loopWaitTime) > 10000)
 	{
+		auto free = ESP.getFreeHeap();
+		auto total = ESP.getHeapSize();
+	
 		// Update the loop performance counter
-		Logf("Loop %d", _loopPersSecondCount);
+		Serial.printf("Loop %d G:%ld 1:%ld, 2:%ld 3:%ld Heap:%d%%\n",
+					  _loopPersSecondCount,
+					  _gpsParser.GetGpsBytesRec(),
+					  _ntripServer0.GetPacketsSent(),
+					  _ntripServer1.GetPacketsSent(),
+					  _ntripServer2.GetPacketsSent(),
+					  (int)(100.0 * free / total));
 		_loopWaitTime = t;
 		_loopPersSecondCount = 0;
 	}
@@ -185,7 +194,8 @@ void loop()
 				_ntripServer2.HasConnectionExpired(t))
 			{
 				Logln("E905 - All NTRIP servers expired (Suspect WIFI outage)");
-				_wifiManager.disconnect();
+				WiFi.disconnect(true, false);
+				//_wifiManager.disconnect();
 			}
 		}
 
@@ -246,6 +256,7 @@ bool IsWifiConnected()
 		if (status == WL_CONNECTED)
 		{
 			// Setup the access point to prevend device getting stuck on a nearby network
+			_wifiManager.setConfigPortalTimeout(0);
 			auto res = _wifiManager.startConfigPortal(WiFi.getHostname(), AP_PASSWORD);
 			if (!res)
 				Logln("Failed to start config Portal (Maybe cos non-blocked)");
@@ -262,6 +273,7 @@ bool IsWifiConnected()
 	// .. This will block till we have a connection or timeouts
 	Logln("E310 - Try resetting WIfi");
 	_ledState.Set(4);
+	WiFi.mode(WIFI_AP_STA);
 	_wifiManager.setConfigPortalTimeout(30);
 	_wifiManager.autoConnect(WiFi.getHostname(), AP_PASSWORD);
 	if (WiFi.status() == WL_CONNECTED)

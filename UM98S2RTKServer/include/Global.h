@@ -1,6 +1,6 @@
 #pragma once
 
-#define APP_VERSION "3.187"
+#define APP_VERSION "3.189"
 
 #define APP_CPU_NUM 1
 
@@ -11,6 +11,7 @@
 
 #define MAX_LOG_LENGTH (200)
 #define MAX_LOG_SIZE (MAX_LOG_LENGTH * 80)
+#define MAX_LOG_ROW_LENGTH 127
 
 #define RTK_SERVERS 3
 

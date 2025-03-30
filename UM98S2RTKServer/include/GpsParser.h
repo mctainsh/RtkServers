@@ -4,7 +4,7 @@
 
 // VERBOSE will log more GPS detail including dump logs and received RTK types
 #define VERBOSE
-//#define VERBOSE_DEBUG
+// #define VERBOSE_DEBUG
 
 // Process the received packets after a GPS is configured and running
 #define PROCESS_ALL_PACKETS true
@@ -86,7 +86,8 @@ class GpsParser
 	{
 		BuildStateNone,
 		BuildStateBinary,
-		BuildStateAscii
+		BuildStateAscii,
+		BuildStateRtkAscii,
 	};
 
 private:
@@ -235,7 +236,7 @@ public:
 			}
 			_binaryIndex = 0;
 
-#ifdef VERBOSE
+#ifdef VERBOSE_DEBUG
 			LogX(StringPrintf("OUT DATA %d : %s", n, HexDump(pData, available).c_str()));
 #endif
 		}
@@ -257,12 +258,14 @@ public:
 			{
 			case '$':
 			case '#':
+				DumpSkippedBytes();
 				// LogX("Build ASCII");
 				_binaryIndex = 1;
 				_byteArray[0] = ch;
 				_buildState = BuildStateAscii;
 				return true;
 			case 0xD3:
+				DumpSkippedBytes();
 				// LogX("Build BINARY");
 				_buildState = BuildStateBinary;
 				_binaryLength = 0;
@@ -277,6 +280,10 @@ public:
 		// Work the binary buffer
 		case BuildStateBinary:
 			return BuildBinary(ch);
+
+		// Building RTK ASCII packet
+		case BuildStateRtkAscii:
+			return BuildRtkAscii(ch);
 
 		// Plain text processing
 		case BuildStateAscii:
@@ -308,6 +315,22 @@ public:
 	{
 		_byteArray[_binaryIndex++] = ch;
 
+		// Check for text messages
+		if (_binaryIndex == 3)
+		{
+			uint lengthPrefix = GetUInt(8, 14 - 8);
+			if (lengthPrefix == 2)
+			{
+				_buildState = BuildStateRtkAscii;
+				return true;
+			}
+			if (lengthPrefix != 0)
+			{
+				LogX(StringPrintf("Binary length prefix too big %02x %02x - %d", _byteArray[0], _byteArray[1], lengthPrefix));
+				return false;
+			}
+		}
+
 		if (_binaryIndex < 12)
 			return true;
 
@@ -318,7 +341,7 @@ public:
 			if (lengthPrefix != 0)
 			{
 				LogX(StringPrintf("Binary length prefix too big %02x %02x - %d", _byteArray[0], _byteArray[1], lengthPrefix));
-				//	return false;
+				return false;
 			}
 			_binaryLength = GetUInt(14, 10) + 6;
 			if (_binaryLength == 0 || _binaryLength >= MAX_BUFF)
@@ -368,9 +391,52 @@ public:
 
 			_msgTypeTotals[type]++;
 #ifdef VERBOSE
-			Serial.printf("G %d [%d] %d\r\n", type, _binaryLength, WiFi.status());
+			//Serial.printf("G %d [%d] %d\n", type, _binaryLength, WiFi.status());
 #endif
 			_buildState = BuildStateNone;
+		}
+		return true;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// Process a new byte in RTK ASCII format
+		/// <summary>
+	/// Process the RTK ASCII data
+	/// </summary>
+	bool BuildRtkAscii(byte ch)
+	{
+		if (ch == '\r' || ch == '\n')
+			return true;
+
+		if (ch == '\0')
+		{
+			if (_binaryIndex < 2)
+			{
+				LogX("RTK <- ''");
+			}
+			else
+			{
+				_byteArray[_binaryIndex] = 0;
+				LogX(StringPrintf("RTK <- %s ", _byteArray+2));
+			}
+			_buildState = BuildStateNone;
+			return true;
+		}
+
+		if (_binaryIndex > 254)
+		{
+			LogX(StringPrintf("RTK ASCII Overflowing %s", HexAsciDump(_byteArray, _binaryIndex).c_str()));
+			_buildState = BuildStateNone;
+			return false;
+		}
+
+		_byteArray[_binaryIndex++] = ch;
+
+		if (ch < 32 || ch > 126)
+		{
+			LogX( StringPrintf("RTK Non-ASCII %s", HexAsciDump(_byteArray,_binaryIndex).c_str()));
+			_buildState = BuildStateNone;
+			return false;
 		}
 		return true;
 	}
@@ -472,34 +538,34 @@ private:
 	// Write to the debug log and keep the last few messages for display
 	void LogX(std::string text)
 	{
-		// Dump any skipped data
-		if (_skippedIndex > 0)
-		{
-			if (_skippedIndex == 1 && _skippedArray[0] == 0x0A)
-			{
-				// Don't dump the end of ASCII line
-			}
-			else
-			{
-				_skippedArray[_skippedIndex] = 0;
-				std::string logTest;
-				if (IsAllAscii(_skippedArray, _skippedIndex))
-					logTest = StringPrintf("Skipped [%d] %s", _skippedIndex, _skippedArray).c_str();
-				else
-					logTest = StringPrintf("Skipped [%d] %s", _skippedIndex, HexDump(_skippedArray, _skippedIndex).c_str());
-				_logHistory.push_back(logTest.c_str());
-				Logln(logTest.c_str());
-
-				_missedBytesDuringError += _skippedIndex;
-			}
-			_skippedIndex = 0;
-		}
-
 		// Normal log
 		auto s = Logln(text.c_str());
-		_logHistory.push_back(s);
+		if (s.length() > MAX_LOG_ROW_LENGTH)
+			_logHistory.push_back(s.substr(0, MAX_LOG_ROW_LENGTH) + "...");
+		else
+			_logHistory.push_back(s);
+
 
 		TruncateLog(_logHistory);
+	}
+
+	///////////////////////////////////////////////////////////////////////////////
+	// Dump any skipped bytes we have gathered
+	void DumpSkippedBytes()
+	{
+		if (_skippedIndex < 1)
+			return;
+
+		_skippedArray[_skippedIndex] = 0;
+		std::string logTest;
+		if (IsAllAscii(_skippedArray, _skippedIndex))
+			logTest = StringPrintf("Skipped [%d] %s", _skippedIndex, _skippedArray).c_str();
+		else
+			logTest = StringPrintf("Skipped [%d] %s", _skippedIndex, HexDump(_skippedArray, _skippedIndex).c_str());
+		LogX(logTest.c_str());
+
+		_missedBytesDuringError += _skippedIndex;
+		_skippedIndex = 0;
 	}
 
 	////////////////////////////////////////////////////////////////////////////

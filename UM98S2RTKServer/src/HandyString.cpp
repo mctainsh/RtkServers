@@ -82,7 +82,7 @@ std::string HexAsciDump(const unsigned char *data, int len)
 		{
 			szText[SIZE] = '\0';
 			if (n > 0)
-				lines += (std::string(szText) + "\r\n");
+				lines += (std::string(szText) + "\n");
 
 			// Fill the szText with spaces
 			memset(szText, ' ', SIZE);
@@ -197,10 +197,9 @@ std::string ReplaceNewlineWithTab(const std::string &input)
 	std::string output;
 	for (char c : input)
 	{
+		output += c;
 		if (c == '\n')
 			output += '\t';
-		else
-			output += c;
 	}
 	return output;
 }

@@ -7,6 +7,7 @@
 		"freset",
 		"GNGGA",
 		"GNSS",
+		"himem",
 		"NTRIP",
 		"Plotly",
 		"PREAMB",

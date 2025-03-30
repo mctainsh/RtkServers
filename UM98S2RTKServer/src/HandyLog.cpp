@@ -21,7 +21,7 @@ void SetupLog()
 	else
 	{
 		Logln("Serial Mutex Created");
-	}	
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -60,7 +60,7 @@ std::string Logln(const char *msg)
 #ifdef SERIAL_LOG
 	// perror(s.c_str());
 	Serial.print(s.c_str());
-	Serial.print("\r\n");
+	Serial.print("\n");
 #endif
 	return s;
 }
@@ -99,9 +99,11 @@ std::string AddToLog(const char *msg)
 		while (_mainLog.size() > MAX_LOG_LENGTH)
 			_mainLog.erase(_mainLog.begin());
 
-		// Add everything except the last CR and LF
-
-		_mainLog.push_back(s);
+		// Add the first 127 characters of the message
+		if (s.length() > MAX_LOG_ROW_LENGTH)
+			_mainLog.push_back(s.substr(0, MAX_LOG_ROW_LENGTH) + "...");
+		else
+			_mainLog.push_back(s);
 		xSemaphoreGive(_serialMutex);
 	}
 	else

@@ -27,11 +27,11 @@ NTRIPServer::NTRIPServer(int index)
 	if (_logMutex == nullptr)
 		perror("Failed to create log mutex\n");
 	else
-		Serial.printf("Log %d Mutex Created\r\n", index);
+		Serial.printf("Log %d Mutex Created\n", index);
 	if (_queMutex == nullptr)
 		perror("Failed to create queue mutex\n");
 	else
-		Serial.printf("Queue %d Mutex Created\r\n", index);
+		Serial.printf("Queue %d Mutex Created\n", index);
 }
 
 static void TaskWrapper(void *param)
@@ -59,7 +59,7 @@ void NTRIPServer::LoadSettings()
 			_port = atoi(parts[1].c_str());
 			_sCredential = parts[2];
 			_sPassword = parts[3];
-			LogX(StringPrintf(" - Recovered\r\n\t Address  : %s\r\n\t Port     : %d\r\n\t Mid/Cred : %s\r\n\t Pass     : %s", _sAddress.c_str(), _port, _sCredential.c_str(), _sPassword.c_str()));
+			LogX(StringPrintf(" - Recovered\n\t Address  : %s\n\t Port     : %d\n\t Mid/Cred : %s\n\t Pass     : %s", _sAddress.c_str(), _port, _sCredential.c_str(), _sPassword.c_str()));
 		}
 		else
 		{
@@ -111,7 +111,7 @@ void NTRIPServer::Save(const char *address, const char *port, const char *creden
 // This is the main loop for the RTK connection
 void NTRIPServer::TaskFunction()
 {
-	Serial.printf("+++++ NTRIP Server %d Starting\r\n", _index);
+	Serial.printf("+++++ NTRIP Server %d Starting\n", _index);
 	while (true)
 	{
 		// Get the next item from the queue
@@ -129,10 +129,10 @@ void NTRIPServer::TaskFunction()
 		{
 			_lastStackCheck = millis();
 			_maxStackHeight = uxTaskGetStackHighWaterMark(NULL);
-			Serial.printf("%d) Stack:%d St:%d Conn:%d\r\n", _index, _maxStackHeight, _status, connected);
+			Serial.printf("%d) Stack:%d St:%d Conn:%d\n", _index, _maxStackHeight, _status, connected);
 			if (!connected)
 			{
-				Serial.printf("     Recon in %d of %d \r\n", (millis() - _wifiConnectTime), WIFI_TIMEOUTS[_timeOutIndex]);
+				Serial.printf("     Recon in %d of %d \n", (millis() - _wifiConnectTime), WIFI_TIMEOUTS[_timeOutIndex]);
 			}
 		}
 
@@ -248,7 +248,7 @@ void NTRIPServer::ConnectedProcessingSend(const byte *pBytes, int length)
 		_packetsSent++;
 		_timeOutIndex = 0;
 #ifdef SERIAL_LOG
-		Serial.printf("V %d) %d (%dms)   ", _index, length, time / 1000);
+		// Serial.printf("V %d) %d (%dms)   ", _index, length, time / 1000);
 #endif
 	}
 }
@@ -271,7 +271,7 @@ void NTRIPServer::ConnectedProcessingReceive()
 	_pSocketBuffer[buffSize] = 0;
 
 	// Log the data
-	LogX("RECV. " + _sAddress + "\r\n" + HexAsciDump(_pSocketBuffer, buffSize));
+	LogX("RECV. " + _sAddress + "\n" + HexAsciDump(_pSocketBuffer, buffSize));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -291,6 +291,10 @@ int NTRIPServer::AverageSendTime()
 void NTRIPServer::LogX(std::string text)
 {
 	auto s = Logln(text.c_str());
+	// Add the first 127 characters of the message
+	if (s.length() > MAX_LOG_ROW_LENGTH)
+		s = s.substr(0, MAX_LOG_ROW_LENGTH) + "...";
+
 	if (xSemaphoreTake(_logMutex, portMAX_DELAY))
 	{
 		_logHistory.push_back(s);

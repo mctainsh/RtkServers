@@ -241,28 +241,30 @@ void WebPortal::GraphDetail(std::string &html, std::string divId, const NTRIPSer
 void WebPortal::HtmlLog(const char *title, const std::vector<std::string> &log) const
 {
 	Logf("Show %s", title);
-	// std::string html = "<html><head></head><h3>Log ";
-	// html += title;
-	// html += "</h3>";
-	// html += "<pre>";
-	// for (const auto &entry : log)
-	// {
-	// 	html += (Replace(ReplaceNewlineWithTab(entry), "<", "&lt;") + "\n");
-	// }
-	// html += "</pre></html>";
-	// _wifiManager.server->send(200, "text/html", html.c_str());
-
-	// auto response = _wifiManager.server->beginResponse(200, "text/html", "");
-	//_wifiManager.server->send(response);
+	std::string html = "<html><head></head><h3>Log ";
+	html += title;
+	html += "</h3>";
+	html += "<pre>";
+	for (const auto &entry : log)
+	{
+		html += (Replace(ReplaceNewlineWithTab(entry), "<", "&lt;") + "\n");
+	}
+	html += "</pre></html>";
+	_wifiManager.server->send(200, "text/html", html.c_str());
+	Serial.printf("\tSent %d bytes\n", html.length());
 
 	// // Headers and footers stored in PROGMEM
 	// static const char HEADER_P[] PROGMEM = "<html><head></head><h3>Log ";
 	// static const char HEADER2_P[] PROGMEM = "</h3><pre>";
-	// static const char FOOTER_P[] PROGMEM = "</pre></html>";
+	// static const char FOOTER_P[] PROGMEM = "\n---END ---</pre></html>";
 
+	// // First send HTTP response headers
+	// _wifiManager.server->sendHeader("Connection", "close");
+	// _wifiManager.server->sendHeader("Cache-Control", "no-cache");
 	// _wifiManager.server->setContentLength(CONTENT_LENGTH_UNKNOWN);
+	// _wifiManager.server->send(200, "text/html", "");
 
-	// // Send initial response
+	// // Then stream the content
 	// _wifiManager.server->sendContent_P(HEADER_P);
 	// _wifiManager.server->sendContent(title);
 	// _wifiManager.server->sendContent_P(HEADER2_P);
@@ -270,39 +272,13 @@ void WebPortal::HtmlLog(const char *title, const std::vector<std::string> &log) 
 	// // Stream each log entry
 	// for (const auto &entry : log)
 	// {
-	//     std::string line = Replace(ReplaceNewlineWithTab(entry), "<", "&lt;") + "\n";
-	//     _wifiManager.server->sendContent(line.c_str());
-	//     yield();
+	// 	std::string line = Replace(ReplaceNewlineWithTab(entry), "<", "&lt;") + "\n";
+	// 	_wifiManager.server->sendContent(line.c_str());
+	// 	yield();
 	// }
 
 	// _wifiManager.server->sendContent_P(FOOTER_P);
-
-	// Headers and footers stored in PROGMEM
-	static const char HEADER_P[] PROGMEM = "<html><head></head><h3>Log ";
-	static const char HEADER2_P[] PROGMEM = "</h3><pre>";
-	static const char FOOTER_P[] PROGMEM = "\r\n---END ---</pre></html>";
-
-	// First send HTTP response headers
-	_wifiManager.server->sendHeader("Connection", "close");
-	_wifiManager.server->sendHeader("Cache-Control", "no-cache");
-	_wifiManager.server->setContentLength(CONTENT_LENGTH_UNKNOWN);
-	_wifiManager.server->send(200, "text/html", "");
-
-	// Then stream the content
-	_wifiManager.server->sendContent_P(HEADER_P);
-	_wifiManager.server->sendContent(title);
-	_wifiManager.server->sendContent_P(HEADER2_P);
-
-	// Stream each log entry
-	for (const auto &entry : log)
-	{
-		std::string line = Replace(ReplaceNewlineWithTab(entry), "<", "&lt;") + "\n";
-		_wifiManager.server->sendContent(line.c_str());
-		yield();
-	}
-
-	_wifiManager.server->sendContent_P(FOOTER_P);
-	_wifiManager.server->client().stop();
+	// _wifiManager.server->client().stop();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -326,7 +302,7 @@ std::string I(int n)
 void TableRow(std::string &html, int indent, const std::string &name, const char *value, bool rightAlign)
 {
 #ifdef SERIAL_LOG
-	Serial.printf("TableRow %d %s %s\r\n", indent, name.c_str(), value);
+	Serial.printf("TableRow %d %s %s\n", indent, name.c_str(), value);
 #endif
 	html += "<tr>";
 	switch (indent)
@@ -463,11 +439,11 @@ void WebPortal::ShowStatusHtml()
 	TableRow(html, 1, "Bytes received", _gpsParser.GetGpsBytesRec());
 	TableRow(html, 1, "Reset count", _gpsParser.GetGpsResetCount());
 	TableRow(html, 1, "Reinitialize count", _gpsParser.GetGpsReinitialize());
-	TableRow(html, 1, "ASCII count", _gpsParser.GetAsciiMsgCount());
 	TableRow(html, 1, "Read errors", _gpsParser.GetReadErrorCount());
 	TableRow(html, 1, "Max buffer size", _gpsParser.GetMaxBufferSize());
 
 	TableRow(html, 0, "Message counts", "");
+	TableRow(html, 1, "ASCII", _gpsParser.GetAsciiMsgCount());
 	int messageCount = 0;
 	for (const auto &pair : _gpsParser.GetMsgTypeTotals())
 	{
@@ -511,4 +487,5 @@ void WebPortal::ShowStatusHtml()
 
 	html += "</body>";
 	_wifiManager.server->send(200, "text/html", html.c_str());
+	Serial.printf("\tSent %d bytes\n", html.length());
 }

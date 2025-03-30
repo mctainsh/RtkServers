@@ -21,7 +21,7 @@ public:
 		if (_mutex == NULL)
 			perror("Failed to create FILE mutex\n");
 		else
-			Serial.printf("File Mutex Created\r\n", index);
+			Serial.printf("File Mutex Created\n", index);
 
 		// Check if the file system is mounted
 		if (SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED))
