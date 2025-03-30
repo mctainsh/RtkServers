@@ -53,6 +53,8 @@ public:
 		Logf("GPS Queue StartInitialiseProcess");
 		_strings.clear();
 
+		SendStartupCommands();
+		
 		// Setup RTCM V3
 		//_strings.push_back("VERSION");	   // Used to determine device type
 		_strings.push_back("RTCM1005 30"); // Base station antenna reference point (ARP) coordinates

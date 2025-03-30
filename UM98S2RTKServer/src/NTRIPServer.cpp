@@ -9,7 +9,8 @@
 extern MyFiles _myFiles;
 
 // Progressive time out for reconnecting
-static const unsigned long WIFI_TIMEOUTS[] = {15000, 30000, 60000, 120000, 300000};
+// static const unsigned long WIFI_TIMEOUTS[] = {15000, 15000};
+static const unsigned long WIFI_TIMEOUTS[] = {15000, 15000, 30000, 60000, 120000, 300000};
 static const int WIFI_TIMEOUT_SIZE = sizeof(WIFI_TIMEOUTS) / sizeof(WIFI_TIMEOUTS[0]);
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -19,7 +20,7 @@ NTRIPServer::NTRIPServer(int index)
 	  _logMutex(xSemaphoreCreateMutex()),
 	  _queMutex(xSemaphoreCreateMutex())
 {
-	_sendMicroSeconds.reserve(AVERAGE_SEND_TIMERS);	  // Reserve space for the send times
+	_sendMicroSeconds.reserve(AVERAGE_SEND_TIMERS);			 // Reserve space for the send times
 	_wifiConnectTime = 10000 - WIFI_TIMEOUTS[_timeOutIndex]; // Start the connection process after 10 seconds
 
 	// Check mutexs
@@ -91,7 +92,7 @@ void NTRIPServer::LoadSettings()
 		StringPrintf("NtripSvrTask%d", index).c_str(), // Task name
 		5000,										   // Stack size (bytes)
 		this,										   // Parameter
-		1,											   // Task priority
+		2,											   // Task priority
 		&_connectingTask,							   // Task handle
 		APP_CPU_NUM);
 }
@@ -123,11 +124,16 @@ void NTRIPServer::TaskFunction()
 		}
 
 		// Every 10 seconds log stack height and task stack height
+		bool connected = _client.connected();
 		if ((millis() - _lastStackCheck) > 10000)
 		{
 			_lastStackCheck = millis();
 			_maxStackHeight = uxTaskGetStackHighWaterMark(NULL);
-			Serial.printf("%d) Stack %d\r\n", _index, _maxStackHeight);
+			Serial.printf("%d) Stack:%d St:%d Conn:%d\r\n", _index, _maxStackHeight, _status, connected);
+			if (!connected)
+			{
+				Serial.printf("     Recon in %d of %d \r\n", (millis() - _wifiConnectTime), WIFI_TIMEOUTS[_timeOutIndex]);
+			}
 		}
 
 		// Wifi check interval
@@ -188,7 +194,41 @@ void NTRIPServer::ConnectedProcessingSend(const byte *pBytes, int length)
 	if (sent != length)
 	{
 		// Send failed so record the failure and start the reconnect process
-		LogX(StringPrintf("E500 - %s Only sent %d of %d (%dms)", _sAddress.c_str(), sent, length, time / 1000));
+		// LogX(StringPrintf("E500 - %s Only sent %d of %d (%dms)", _sAddress.c_str(), sent, length, time / 1000));
+		LogX(StringPrintf("E500 - %s Only sent %d of %d (%dms)",
+						  _sAddress.c_str(),
+						  sent,
+						  length,
+						  time / 1000));
+
+		int errorCode = errno;
+		const char *errorMsg = strerror(errno);
+		LogX(StringPrintf(" --- Error: %d - %s", errorCode, errorMsg));
+
+		// Check for buffer full and sleep for a bit
+		//	if (errorCode == EWOULDBLOCK)
+		//	{
+		//		LogX("\tSocket buffer full - try again later");
+		//		vTaskDelay(1000 / portTICK_PERIOD_MS);
+		//		return;
+		//	}
+
+		// Check specific error conditions
+		if (errorCode == EWOULDBLOCK)
+			LogX(" --- Socket would block - buffer full");
+		else if (errorCode == ENOTCONN)
+			LogX(" --- Socket not connected");
+		else if (errorCode == ECONNRESET)
+			LogX(" --- Connection reset by peer");
+		else if (errorCode == ETIMEDOUT)
+			LogX(" --- Connection timed out");
+		else if (errorCode == ENOTCONN)
+			LogX(" --- Socket not connected");
+		else if (errorCode == EPIPE)
+			LogX(" --- Broken pipe - connection closed by peer");
+		else if (errorCode == EINVAL)
+			LogX(" --- Invalid argument - check socket options");
+
 		_client.stop();
 		_status = ConnectionState::Disconnected;
 	}
@@ -201,10 +241,15 @@ void NTRIPServer::ConnectedProcessingSend(const byte *pBytes, int length)
 			_maxSendTime = max(_maxSendTime, time);
 
 		// Logf("RTK %s Sent %d OK", _sAddress.c_str(), sent);
-		_sendMicroSeconds.push_back(sent * 8 * 1000 / max(1UL, time));
+		//_sendMicroSeconds.push_back(sent * 8 * 1000 / max(1UL, time));
+		_sendMicroSeconds.push_back((int)time);
 		_wifiConnectTime = millis();
+		_lastGoodSend = _wifiConnectTime;
 		_packetsSent++;
 		_timeOutIndex = 0;
+#ifdef SERIAL_LOG
+		Serial.printf("V %d) %d (%dms)   ", _index, length, time / 1000);
+#endif
 	}
 }
 
@@ -285,7 +330,7 @@ bool NTRIPServer::Reconnect()
 	// Get next timeout period
 	_timeOutIndex++;
 	if (_timeOutIndex >= WIFI_TIMEOUT_SIZE)
-			_timeOutIndex = WIFI_TIMEOUT_SIZE - 1;
+		_timeOutIndex = WIFI_TIMEOUT_SIZE - 1;
 
 	_wifiConnectTime = millis();
 
@@ -300,7 +345,7 @@ bool NTRIPServer::Reconnect()
 	_client.setNoDelay(true); // This results in 0.5s latency when RTK2GO.com is skipped?
 	if (!_client.connected())
 	{
-		LogX(StringPrintf("E500 - RTK %s Not connected %d. (%dms)", _sAddress.c_str(), status, millis() - _wifiConnectTime));
+		LogX(StringPrintf("E500 - RTK %s Not connected %d. (%dms)", _sAddress.c_str(), status / 1000, (millis() - _wifiConnectTime) / 1000));
 		return false;
 	}
 	LogX(StringPrintf("Connected %s OK. (%dms)", _sAddress.c_str(), millis() - _wifiConnectTime));
@@ -358,7 +403,7 @@ const char *NTRIPServer::GetStatus() const
 bool NTRIPServer::EnqueueData(const byte *pBytes, int length)
 {
 	// Don't queue if disabled
-	if( _status == ConnectionState::Disabled)
+	if (_status == ConnectionState::Disabled)
 		return false;
 
 	// Lock the queue mutex
@@ -375,6 +420,9 @@ bool NTRIPServer::EnqueueData(const byte *pBytes, int length)
 			_queueOverflows++;
 			QueueData *pOldItem = _dataQueue[0];
 			_dataQueue.erase(_dataQueue.begin());
+
+			// LogX(StringPrintf("Queue %d overflow %d", _index, _overflowSetSize));
+
 			delete pOldItem;
 		}
 

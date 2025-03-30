@@ -131,7 +131,7 @@ void WebPortal::OnBindServerCallback()
 	_wifiManager.server->on("/castergraph", std::bind(&WebPortal::GraphHtml, this));
 	_wifiManager.server->on("/status", HTTP_GET, std::bind(&WebPortal::ShowStatusHtml, this));
 	_wifiManager.server->on("/log", HTTP_GET, [this]()
-							{ HtmlLog("System log", CopyMainLog());	});
+							{ HtmlLog("System log", CopyMainLog()); });
 	_wifiManager.server->on("/gpslog", HTTP_GET, [this]()
 							{ HtmlLog("GPS log", _gpsParser.GetLogHistory()); });
 	_wifiManager.server->on("/caster1log", HTTP_GET, [this]()
@@ -144,14 +144,11 @@ void WebPortal::OnBindServerCallback()
 	_wifiManager.server->on("/FRESET_GPS_CONFIRMED", HTTP_GET, [this]()
 							{ 
 								_gpsParser.GetCommandQueue().IssueFReset();
-								_wifiManager.server->send(200, "text/html", "<html>Done</html>");
-							});
+								_wifiManager.server->send(200, "text/html", "<html>Done</html>"); });
 	_wifiManager.server->on("/RESET_WIFI", HTTP_GET, [this]()
 							{ 
 								_wifiManager.erase();
-								ESP.restart();
-							});
-							
+								ESP.restart(); });
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -169,7 +166,6 @@ void WebPortal::Loop()
 		{
 			_loops = 0;
 			_wifiManager.process();
-			Logln("WebPortal loop");
 		}
 	}
 }
@@ -182,7 +178,7 @@ void WebPortal::OnSaveParamsCallback()
 	_ntripServer1.Save(_pCaster1Address->getValue(), _pCaster1Port->getValue(), _pCaster1Credential->getValue(), _pCaster1Password->getValue());
 	_ntripServer2.Save(_pCaster2Address->getValue(), _pCaster2Port->getValue(), _pCaster2Credential->getValue(), _pCaster2Password->getValue());
 
-	SaveBaseLocation( _pBaseLocation->getValue());
+	SaveBaseLocation(_pBaseLocation->getValue());
 
 	delay(1000);
 
@@ -245,16 +241,68 @@ void WebPortal::GraphDetail(std::string &html, std::string divId, const NTRIPSer
 void WebPortal::HtmlLog(const char *title, const std::vector<std::string> &log) const
 {
 	Logf("Show %s", title);
-	std::string html = "<html><head></head><h3>Log ";
-	html += title;
-	html += "</h3>";
-	html += "<pre>";
+	// std::string html = "<html><head></head><h3>Log ";
+	// html += title;
+	// html += "</h3>";
+	// html += "<pre>";
+	// for (const auto &entry : log)
+	// {
+	// 	html += (Replace(ReplaceNewlineWithTab(entry), "<", "&lt;") + "\n");
+	// }
+	// html += "</pre></html>";
+	// _wifiManager.server->send(200, "text/html", html.c_str());
+
+	// auto response = _wifiManager.server->beginResponse(200, "text/html", "");
+	//_wifiManager.server->send(response);
+
+	// // Headers and footers stored in PROGMEM
+	// static const char HEADER_P[] PROGMEM = "<html><head></head><h3>Log ";
+	// static const char HEADER2_P[] PROGMEM = "</h3><pre>";
+	// static const char FOOTER_P[] PROGMEM = "</pre></html>";
+
+	// _wifiManager.server->setContentLength(CONTENT_LENGTH_UNKNOWN);
+
+	// // Send initial response
+	// _wifiManager.server->sendContent_P(HEADER_P);
+	// _wifiManager.server->sendContent(title);
+	// _wifiManager.server->sendContent_P(HEADER2_P);
+
+	// // Stream each log entry
+	// for (const auto &entry : log)
+	// {
+	//     std::string line = Replace(ReplaceNewlineWithTab(entry), "<", "&lt;") + "\n";
+	//     _wifiManager.server->sendContent(line.c_str());
+	//     yield();
+	// }
+
+	// _wifiManager.server->sendContent_P(FOOTER_P);
+
+	// Headers and footers stored in PROGMEM
+	static const char HEADER_P[] PROGMEM = "<html><head></head><h3>Log ";
+	static const char HEADER2_P[] PROGMEM = "</h3><pre>";
+	static const char FOOTER_P[] PROGMEM = "\r\n---END ---</pre></html>";
+
+	// First send HTTP response headers
+	_wifiManager.server->sendHeader("Connection", "close");
+	_wifiManager.server->sendHeader("Cache-Control", "no-cache");
+	_wifiManager.server->setContentLength(CONTENT_LENGTH_UNKNOWN);
+	_wifiManager.server->send(200, "text/html", "");
+
+	// Then stream the content
+	_wifiManager.server->sendContent_P(HEADER_P);
+	_wifiManager.server->sendContent(title);
+	_wifiManager.server->sendContent_P(HEADER2_P);
+
+	// Stream each log entry
 	for (const auto &entry : log)
 	{
-		html += (Replace(ReplaceNewlineWithTab(entry), "<", "&lt;") + "\n");
+		std::string line = Replace(ReplaceNewlineWithTab(entry), "<", "&lt;") + "\n";
+		_wifiManager.server->sendContent(line.c_str());
+		yield();
 	}
-	html += "</pre></html>";
-	_wifiManager.server->send(200, "text/html", html.c_str());
+
+	_wifiManager.server->sendContent_P(FOOTER_P);
+	_wifiManager.server->client().stop();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -277,6 +325,9 @@ std::string I(int n)
 /// @param rightAlign true if the value should be right aligned (Numbers)
 void TableRow(std::string &html, int indent, const std::string &name, const char *value, bool rightAlign)
 {
+#ifdef SERIAL_LOG
+	Serial.printf("TableRow %d %s %s\r\n", indent, name.c_str(), value);
+#endif
 	html += "<tr>";
 	switch (indent)
 	{
@@ -367,14 +418,14 @@ void WebPortal::ConfirmResetHtml()
 	<h3>CONFIRM RESET</h3>";
 
 	html += "<ul>";
-	html += "<li><a href='/FRESET_GPS_CONFIRMED'>Confirm GPS RESET</a></li>";	
-	html += "<li></li>";	
-	html += "<li></li>";	
-	html += "<li></li>";	
-	html += "<li><a href='/RESET_WIFI'>Confirm WIFI and Settings RESET</a></li>";	
-	html += "<li></li>";	
-	html += "<li></li>";	
-	html += "<li></li>";	
+	html += "<li><a href='/FRESET_GPS_CONFIRMED'>Confirm GPS RESET</a></li>";
+	html += "<li></li>";
+	html += "<li></li>";
+	html += "<li></li>";
+	html += "<li><a href='/RESET_WIFI'>Confirm WIFI and Settings RESET</a></li>";
+	html += "<li></li>";
+	html += "<li></li>";
+	html += "<li></li>";
 	html += "<li><a href='/i'>Cancel</a></li>";
 	html += "</ul>";
 	html += "</body>";
@@ -397,15 +448,11 @@ void WebPortal::ShowStatusHtml()
 	html += "<table class='striped'>";
 	TableRow(html, 0, "General", "");
 	TableRow(html, 1, "Version", APP_VERSION);
-#if USER_SETUP_ID == 25
-	TableRow(html, 1, "Device", "TTGO T-Display");
-#else
-#if USER_SETUP_ID == 206
-	TableRow(html, 1, "Device", "TTGO T-Display-S3");
-#else
-	TableRow(html, 1, "Device", "Generic ESP32");
-#endif
-#endif
+
+	TableRow(html, 1, "Manufacturer", USB_MANUFACTURER);
+	TableRow(html, 1, "Product", USB_PRODUCT);
+	TableRow(html, 1, "Vendor", USB_FW_MSC_VENDOR_ID);
+
 	TableRow(html, 1, "Uptime", Uptime(millis()));
 	// TableRow(html, 1, "Free Heap", ESP.getFreeHeap());
 	TableRow(html, 0, "GPS", "");
@@ -413,19 +460,22 @@ void WebPortal::ShowStatusHtml()
 	TableRow(html, 1, "Device firmware", _gpsParser.GetCommandQueue().GetDeviceFirmware());
 	TableRow(html, 1, "Device serial #", _gpsParser.GetCommandQueue().GetDeviceSerial());
 
-	int32_t resetCount, reinitialize, messageCount;
-//	_display.GetGpsStats(resetCount, reinitialize, messageCount);
-//	TableRow(html, 1, "Reset count", resetCount);
-//	TableRow(html, 1, "Reinitialize count", reinitialize);
+	TableRow(html, 1, "Bytes received", _gpsParser.GetGpsBytesRec());
+	TableRow(html, 1, "Reset count", _gpsParser.GetGpsResetCount());
+	TableRow(html, 1, "Reinitialize count", _gpsParser.GetGpsReinitialize());
+	TableRow(html, 1, "ASCII count", _gpsParser.GetAsciiMsgCount());
 	TableRow(html, 1, "Read errors", _gpsParser.GetReadErrorCount());
 	TableRow(html, 1, "Max buffer size", _gpsParser.GetMaxBufferSize());
 
 	TableRow(html, 0, "Message counts", "");
+	int messageCount = 0;
 	for (const auto &pair : _gpsParser.GetMsgTypeTotals())
+	{
 		TableRow(html, 1, std::to_string(pair.first), pair.second);
+		messageCount += pair.second;
+	}
 	TableRow(html, 1, "Total messages", messageCount);
 	html += "</table>";
-
 
 	html += "<Table><tr>";
 	ServerStatsHtml(_ntripServer0, html);
@@ -433,7 +483,7 @@ void WebPortal::ShowStatusHtml()
 	ServerStatsHtml(_ntripServer2, html);
 	html += "</tr></Table>";
 
-		// Memory stuff
+	// Memory stuff
 	html += "<table class='striped'>";
 	auto free = ESP.getFreeHeap();
 	auto total = ESP.getHeapSize();
@@ -452,7 +502,6 @@ void WebPortal::ShowStatusHtml()
 	TableRow(html, 1, "Total PSRAM", ESP.getPsramSize());
 	TableRow(html, 1, "Free PSRAM", ESP.getFreePsram());
 	TableRow(html, 1, "spiram size", esp_spiram_get_size());
-
 
 	// TableRow(html, 1, "himem free", esp_himem_get_free_size());
 	// TableRow(html, 1, "himem phys", esp_himem_get_phys_size());

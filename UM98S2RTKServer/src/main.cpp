@@ -29,9 +29,10 @@ void LoadBaseLocation();
 
 WiFiManager _wifiManager;
 
-unsigned long _loopWaitTime = 0;	// Time of last second
-int _loopPersSecondCount = 0;		// Number of times the main loops runs in a second
-unsigned long _lastButtonPress = 0; // Time of last button press to turn off display on T-Display-S3
+unsigned long _loopWaitTime = 0;		// Time of last second
+int _loopPersSecondCount = 0;			// Number of times the main loops runs in a second
+unsigned long _lastButtonPress = 0;		// Time of last button press to turn off display on T-Display-S3
+unsigned long _recheckWifiAliveTime = 0; // Time we last checked for wifi alive
 
 WebPortal _webPortal;
 
@@ -46,8 +47,6 @@ NTRIPServer _ntripServer2(2);
 std::string _baseLocation = "";
 
 // WiFi monitoring states
-#define WIFI_STARTUP_TIMEOUT 20000
-unsigned long _wifiFullResetTime = -WIFI_STARTUP_TIMEOUT;
 wl_status_t _lastWifiStatus = wl_status_t::WL_NO_SHIELD;
 
 bool IsButtonReleased(uint8_t button, uint8_t *pCurrent);
@@ -78,7 +77,6 @@ void setup(void)
 	Logln("Enable RS232 pins");
 	Serial1.begin(115200, SERIAL_8N1, 16, 17);
 
-
 	Logln("Enable WIFI");
 	WiFi.mode(WIFI_AP_STA);
 
@@ -102,7 +100,7 @@ void setup(void)
 	_ntripServer0.LoadSettings();
 	_ntripServer1.LoadSettings();
 	_ntripServer2.LoadSettings();
-	
+
 	//	Logf("Display type %d", USER_SETUP_ID);
 
 	// Reset Wifi Setup if needed (Do tis to clear out old wifi credentials)
@@ -117,10 +115,10 @@ void setup(void)
 	// Try at ever increasing timeouts
 	const unsigned long WIFI_CONNECT_TIMEOUTS[] = {15, 30, 30, 300};
 	const int WIFI_CONNECT_TIMEOUTS_SIZE = sizeof(WIFI_CONNECT_TIMEOUTS) / sizeof(WIFI_CONNECT_TIMEOUTS[0]);
-	 int _connectIndex = 0;
+	int _connectIndex = 0;
 	while (WiFi.status() != WL_CONNECTED)
 	{
-		if( _connectIndex >= WIFI_CONNECT_TIMEOUTS_SIZE)
+		if (_connectIndex >= WIFI_CONNECT_TIMEOUTS_SIZE)
 			_connectIndex = WIFI_CONNECT_TIMEOUTS_SIZE - 1;
 		_wifiManager.setConfigPortalTimeout(WIFI_CONNECT_TIMEOUTS[_connectIndex]);
 		Logf("\tTry WIFI Connection %ds", WIFI_CONNECT_TIMEOUTS[_connectIndex]);
@@ -150,19 +148,23 @@ void loop()
 	// Trigger something every second
 	int t = millis();
 	_loopPersSecondCount++;
-	if ((t - _loopWaitTime) > 1000)
+	if ((t - _loopWaitTime) > 10000)
 	{
 		// Update the loop performance counter
+		Logf("Loop %d", _loopPersSecondCount);
 		_loopWaitTime = t;
 		_loopPersSecondCount = 0;
 	}
 
 	// Check for push buttons
-	//	if (IsButtonReleased(BUTTON_1, &_button1Current))
-	//	{
-	//		_lastButtonPress = t;
-	//		Logln("Button 1");
-	//	}
+	if (IsButtonReleased(BUTTON_1, &_button1Current))
+	{
+		_lastButtonPress = t;
+		Logln("Button 1");
+		// Reset WIFI connection
+		_wifiManager.disconnect();
+		//			_wifiManager.autoconnect(WiFi.getHostname(), AP_PASSWORD);
+	}
 	//	if (IsButtonReleased(BUTTON_2, &_button2Current))
 	//	{
 	//		_lastButtonPress = t;
@@ -172,14 +174,27 @@ void loop()
 	// Check for new data GPS serial data
 	if (IsWifiConnected())
 	{
-		if( _gpsParser.ReadDataFromSerial(Serial1) )
+		// Check if we has active WIFI connections
+		if ((t - _recheckWifiAliveTime) > 10000)
+		{
+			_recheckWifiAliveTime = t;
+			// Check the NTRIP servers are alive
+			if (!_gpsParser.HasGpsExpired(t) &&
+				_ntripServer0.HasConnectionExpired(t) &&
+				_ntripServer1.HasConnectionExpired(t) &&
+				_ntripServer2.HasConnectionExpired(t))
+			{
+				Logln("E905 - All NTRIP servers expired (Suspect WIFI outage)");
+				_wifiManager.disconnect();
+			}
+		}
+
+		// Process the GPS data
+		if (_gpsParser.ReadDataFromSerial(Serial1))
 		{
 			// Record we have a connected serial post
 		}
 		_webPortal.Loop();
-	}
-	else
-	{
 	}
 }
 
@@ -226,7 +241,6 @@ bool IsWifiConnected()
 	wl_status_t status = WiFi.status();
 	if (_lastWifiStatus != status)
 	{
-		_lastWifiStatus = status;
 		Logf("Wifi Status %d %s", status, WifiStatus(status));
 
 		if (status == WL_CONNECTED)
@@ -239,22 +253,27 @@ bool IsWifiConnected()
 				Logln("Config portal started");
 		}
 	}
+	_lastWifiStatus = status;
 
 	if (status == WL_CONNECTED)
 		return true;
 
-	// Start the connection process
-	// Logln("E310 - No WIFI");
-	unsigned long t = millis();
-	unsigned long tDelta = t - _wifiFullResetTime;
-	if (tDelta < WIFI_STARTUP_TIMEOUT)
+	// Start the WIFI connection process
+	// .. This will block till we have a connection or timeouts
+	Logln("E310 - Try resetting WIfi");
+	_ledState.Set(4);
+	_wifiManager.setConfigPortalTimeout(30);
+	_wifiManager.autoConnect(WiFi.getHostname(), AP_PASSWORD);
+	if (WiFi.status() == WL_CONNECTED)
 	{
-		return false;
+		Logln("E311 - Reconnected to WiFi");
+		_ledState.Set(5);
+		_ntripServer0.RestartConnectionAttempts();
+		_ntripServer1.RestartConnectionAttempts();
+		_ntripServer2.RestartConnectionAttempts();
+
+		return true;
 	}
-
-	Logln("Try resetting WIfi");
-	delay(1000);
-
 	return false;
 }
 

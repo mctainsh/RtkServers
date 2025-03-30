@@ -24,6 +24,7 @@ public:
 	int AverageSendTime();
 	std::vector<std::string> GetLogHistory();
 	const char *GetStatus() const;
+	void TaskFunction();
 
 	inline int GetReconnects() const { return _reconnects; }
 	inline int GetPacketsSent() const { return _packetsSent; }
@@ -36,19 +37,30 @@ public:
 	inline UBaseType_t GetMaxStackHeight() const { return _maxStackHeight; }
 	inline unsigned long GetQueueOverflows() const { return _queueOverflows; }
 	inline unsigned long GetExpiredPackets() const { return _expiredPackets; }
-	void TaskFunction();
+
+	// Start the connection process. Call this after wifi is reset
+	inline void RestartConnectionAttempts()
+	{
+		_timeOutIndex = 0;
+		_wifiConnectTime = 0;
+		_lastGoodSend = millis();
+	}
+
+	// This is not used for retries but to test if the connection is dead
+	inline const bool HasConnectionExpired(unsigned long millis) const { return (millis - _lastGoodSend) > 30000; }
 
 	enum class ConnectionState
 	{
-		Unknown,
-		Disabled,
-		Connected,
-		Disconnected,
+		Unknown = 0,
+		Disabled = 1,
+		Connected = 2,
+		Disconnected = 3,
 	};
 
 private:
 	WiFiClient _client;									// Socket connection
 	unsigned long _wifiConnectTime = 0;					// Time we last had good data to prevent reconnects too fast
+	unsigned long _lastGoodSend = 0;						// Time we last sent data successfully
 	bool _wasConnected = false;							// Was connected last time
 	const int _index;									// Index of the server used when updating display
 	ConnectionState _status = ConnectionState::Unknown; // Connection status

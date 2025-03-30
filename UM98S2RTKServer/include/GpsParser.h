@@ -4,6 +4,7 @@
 
 // VERBOSE will log more GPS detail including dump logs and received RTK types
 #define VERBOSE
+//#define VERBOSE_DEBUG
 
 // Process the received packets after a GPS is configured and running
 #define PROCESS_ALL_PACKETS true
@@ -101,6 +102,10 @@ private:
 	int _readErrorCount = 0;				   // Total number of read errors
 	int _missedBytesDuringError = 0;		   // Number of bytes we received during the error
 	int _maxBufferSize = 0;					   // Maximum size of the serial buffer
+	int32_t _gpsResetCount = 0;				   // Number GPS resets
+	int32_t _gpsReinitialize = 0;			   // Number GPS initializations
+	int32_t _asciiMsgCount = 0;				   // Number ASCII of packets received
+	int32_t _bytesReceived = 0;				   // Total number of received GPS bytes
 
 public:
 	GpsCommandQueue _commandQueue;
@@ -108,9 +113,9 @@ public:
 	NTRIPServer *_pNtripServer0, *_pNtripServer1, *_pNtripServer2;
 
 	GpsParser() : _commandQueue([this](std::string str)
-																	 { LogX(str); })
+								{ LogX(str); })
 	{
-		_logHistory.reserve(MAX_LOG_LENGTH);		
+		_logHistory.reserve(MAX_LOG_LENGTH);
 	}
 
 	inline std::vector<std::string> GetLogHistory() const { return _logHistory; }
@@ -118,6 +123,11 @@ public:
 	inline const std::map<int, int> &GetMsgTypeTotals() const { return _msgTypeTotals; }
 	inline const int GetReadErrorCount() const { return _readErrorCount; }
 	inline const int GetMaxBufferSize() const { return _maxBufferSize; }
+	inline const int GetGpsBytesRec() const { return _bytesReceived; }
+	inline const int32_t GetGpsResetCount() const { return _gpsResetCount; }
+	inline const int32_t GetGpsReinitialize() const { return _gpsReinitialize; }
+	inline const int32_t GetAsciiMsgCount() const { return _asciiMsgCount; }
+	inline const bool HasGpsExpired(unsigned long millis) const { return (millis - _timeOfLastMessage) > GPS_TIMEOUT; }
 
 	/// @brief Save links to the NTRIP casters
 	void Setup(NTRIPServer *pNtripServer0, NTRIPServer *pNtripServer1, NTRIPServer *pNtripServer2)
@@ -144,12 +154,14 @@ public:
 		_commandQueue.CheckForTimeouts();
 
 		// Check for loss of RTK data
-		if ((millis() - _timeOfLastMessage) > GPS_TIMEOUT)
+		auto t = millis();
+		if (HasGpsExpired(t))
 		{
 			LogX("RTK Data timeout");
 			_gpsConnected = false;
-			_timeOfLastMessage = millis();
+			_timeOfLastMessage = t;
 			_commandQueue.StartInitialiseProcess();
+			_gpsReinitialize++;
 		}
 		return _gpsConnected;
 	}
@@ -175,6 +187,8 @@ public:
 		auto pData = new byte[available + 1];
 		stream.readBytes(pData, available);
 
+		_bytesReceived += available;
+
 		// Process each byte in turn for rolling buffer
 		for (int n = 0; n < available; n++)
 		{
@@ -183,7 +197,7 @@ public:
 
 			_buildState = BuildStateNone;
 
-#ifdef VERBOSE
+#ifdef VERBOSE_DEBUG
 			LogX(StringPrintf("IN  BUFF %d : %s", _binaryIndex, HexDump(_byteArray, _binaryIndex).c_str()));
 			LogX(StringPrintf("IN  DATA %d : %s", n, HexDump(pData, available).c_str()));
 #endif
@@ -354,7 +368,7 @@ public:
 
 			_msgTypeTotals[type]++;
 #ifdef VERBOSE
-			LogX(StringPrintf("GOOD %d [%d]", type, _binaryLength));
+			Serial.printf("G %d [%d] %d\r\n", type, _binaryLength, WiFi.status());
 #endif
 			_buildState = BuildStateNone;
 		}
@@ -430,12 +444,14 @@ public:
 			return;
 		}
 
-		LogX(StringPrintf("GPS [- '%s'", line.c_str()));
+		LogX(StringPrintf("GPS <- '%s'", line.c_str()));
+		_asciiMsgCount++;
 
 		// Check for command responses
 		if (_commandQueue.HasDeviceReset(line))
 		{
 			_timeOfLastMessage = millis();
+			_gpsResetCount++;
 			return;
 		}
 
