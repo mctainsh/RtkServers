@@ -13,6 +13,8 @@
 #define MAX_LOG_SIZE (MAX_LOG_LENGTH * 80)
 #define MAX_LOG_ROW_LENGTH 127
 
+#define TEMP_HISTORY_SIZE (24*60) // 1 day of history at 60 second intervals
+
 #define RTK_SERVERS 3
 
 #define GPS_BUFFER_SIZE (16*1024)

@@ -12,6 +12,7 @@ extern NTRIPServer _ntripServer1;
 extern NTRIPServer _ntripServer2;
 extern GpsParser _gpsParser;
 extern std::string _baseLocation;
+extern char _tempHistory[TEMP_HISTORY_SIZE];
 
 /// @brief Class manages the web pages displayed in the device.
 class WebPortal
@@ -27,6 +28,8 @@ private:
 	void ShowStatusHtml();
 	void GraphHtml() const;
 	void GraphDetail(std::string &html, std::string divId, const NTRIPServer &server) const;
+	void GraphTemperature() const;
+	void GraphArray(std::string &html, std::string divId, const char *pBytes, int length) const;
 	void HtmlLog(const char *title, const std::vector<std::string> &log) const;
 	void OnSaveParamsCallback();
 
@@ -128,7 +131,6 @@ void WebPortal::OnBindServerCallback()
 	_wifiManager.server->on("/i", HTTP_GET, std::bind(&WebPortal::IndexHtml, this));
 	_wifiManager.server->on("/index", HTTP_GET, std::bind(&WebPortal::IndexHtml, this));
 	_wifiManager.server->on("/Confirm_Reset", HTTP_GET, std::bind(&WebPortal::ConfirmResetHtml, this));
-	_wifiManager.server->on("/castergraph", std::bind(&WebPortal::GraphHtml, this));
 	_wifiManager.server->on("/status", HTTP_GET, std::bind(&WebPortal::ShowStatusHtml, this));
 	_wifiManager.server->on("/log", HTTP_GET, [this]()
 							{ HtmlLog("System log", CopyMainLog()); });
@@ -140,7 +142,8 @@ void WebPortal::OnBindServerCallback()
 							{ HtmlLog("Caster 2 log", _ntripServer1.GetLogHistory()); });
 	_wifiManager.server->on("/caster3log", HTTP_GET, [this]()
 							{ HtmlLog("Caster 3 log", _ntripServer2.GetLogHistory()); });
-
+	_wifiManager.server->on("/castergraph", std::bind(&WebPortal::GraphHtml, this));
+	_wifiManager.server->on("/tempGraph", std::bind(&WebPortal::GraphTemperature, this));
 	_wifiManager.server->on("/FRESET_GPS_CONFIRMED", HTTP_GET, [this]()
 							{ 
 								_gpsParser.GetCommandQueue().IssueFReset();
@@ -210,7 +213,6 @@ void WebPortal::GraphHtml() const
 /// @param server The server to plot. Source of title and data
 void WebPortal::GraphDetail(std::string &html, std::string divId, const NTRIPServer &server) const
 {
-
 	html += "<div id='myPlot" + divId + "' style='width:100%;max-width:700px'></div>\n";
 	html += "<script>";
 	html += "const xValues" + divId + " = [";
@@ -230,6 +232,49 @@ void WebPortal::GraphDetail(std::string &html, std::string divId, const NTRIPSer
 	}
 	html += "];";
 	html += "Plotly.newPlot('myPlot" + divId + "', [{x:xValues" + divId + ", y:yValues" + divId + ", mode:'lines'}], {title: '" + server.GetAddress() + " (Mbps)'});";
+	html += "</script>\n";
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Plot a single graph
+void WebPortal::GraphTemperature() const
+{
+	std::string html PROGMEM = "<!DOCTYPE html><html><head>\
+	<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css'>\
+	<script src='https://cdn.plot.ly/plotly-latest.min.js'></script>\
+	</head>\n\
+	<body style='padding:10px;'>\
+	<h3>Temperature C</h3>";
+
+	GraphArray(html, "T", _tempHistory, TEMP_HISTORY_SIZE);
+
+	html += "</body>";
+	html += "</html>";
+	_wifiManager.server->send(200, "text/html", html.c_str());
+	Serial.printf("\tSent %d bytes\n", html.length());
+}
+
+void WebPortal::GraphArray(std::string &html, std::string divId, const char *pBytes, int length) const
+{
+	html += "<div id='myPlot" + divId + "' style='width:100%;max-width:700px'></div>\n";
+	html += "<script>";
+	html += "const xValues" + divId + " = [";
+	for (int n = 0; n < length; n++)
+	{
+		if (n != 0)
+			html += ",";
+		html += StringPrintf("%d", n);
+	}
+	html += "];";
+	html += "const yValues" + divId + " = [";
+	for (int n = 0; n < length; n++)
+	{
+		if (n != 0)
+			html += ",";
+		html += StringPrintf("%d", pBytes[n]);
+	}
+	html += "];";
+	html += "Plotly.newPlot('myPlot" + divId + "', [{x:xValues" + divId + ", y:yValues" + divId + ", mode:'lines'}], {title: 'Degrees (Mbps)'});";
 	html += "</script>\n";
 }
 
@@ -379,6 +424,7 @@ void WebPortal::IndexHtml()
 	html += "<li><a href='/caster2log'>Caster 2 log</a></li>";
 	html += "<li><a href='/caster3log'>Caster 3 log</a></li>";
 	html += "<li><a href='/castergraph'>Caster graph</a></li>";
+	html += "<li><a href='/tempGraph'>Temperature graph</a></li>";
 	html += "<li><a href='/Confirm_Reset'>Reset GPS or WIFI/Config</a></li>";
 	html += "</ul>";
 	html += "</body>";
@@ -390,32 +436,31 @@ void WebPortal::IndexHtml()
 void WebPortal::ConfirmResetHtml()
 {
 	Logln("ShowConfirmReset");
-	std::string html = "<body style='padding:10px;'>\
-	<h3>CONFIRM RESET</h3>";
-
-	html += "<ul>";
-	html += "<li><a href='/FRESET_GPS_CONFIRMED'>Confirm GPS RESET</a></li>";
-	html += "<li></li>";
-	html += "<li></li>";
-	html += "<li></li>";
-	html += "<li><a href='/RESET_WIFI'>Confirm WIFI and Settings RESET</a></li>";
-	html += "<li></li>";
-	html += "<li></li>";
-	html += "<li></li>";
-	html += "<li><a href='/i'>Cancel</a></li>";
-	html += "</ul>";
-	html += "</body>";
+	std::string html PROGMEM = "<body style='padding:10px;'>\
+	<h3>CONFIRM RESET</h3>\
+	<ul>\
+	<li><a href='/FRESET_GPS_CONFIRMED'>Confirm GPS RESET</a></li>\
+	<li></li>\
+	<li></li>\
+	<li></li>\
+	<li><a href='/RESET_WIFI'>Confirm WIFI and Settings RESET</a></li>\
+	<li></li>\
+	<li></li>\
+	<li></li>\
+	<li><a href='/i'>Cancel</a></li>\
+	</ul>\
+	</body>";
 	_wifiManager.server->send(200, "text/html", html.c_str());
 }
 void WebPortal::ShowStatusHtml()
 {
 	Logln("ShowStatusHtml");
-	std::string html = "<head>\
+	std::string html PROGMEM = "<head>\
 	<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css'>\
 	</head>\
 	<body style='padding:10px;'>\
-	<h3>System Status</h3>";
-	html += "<style>\
+	<h3>System Status</h3>\
+	<style>\
 	.r{text-align:right;}\
 	.i1{color:red;}\
 	.i2{color:blue;}\
@@ -430,7 +475,6 @@ void WebPortal::ShowStatusHtml()
 	TableRow(html, 1, "Vendor", USB_FW_MSC_VENDOR_ID);
 
 	TableRow(html, 1, "Uptime", Uptime(millis()));
-	// TableRow(html, 1, "Free Heap", ESP.getFreeHeap());
 	TableRow(html, 0, "GPS", "");
 	TableRow(html, 1, "Device type", _gpsParser.GetCommandQueue().GetDeviceType());
 	TableRow(html, 1, "Device firmware", _gpsParser.GetCommandQueue().GetDeviceFirmware());
@@ -478,6 +522,22 @@ void WebPortal::ShowStatusHtml()
 	TableRow(html, 1, "Total PSRAM", ESP.getPsramSize());
 	TableRow(html, 1, "Free PSRAM", ESP.getFreePsram());
 	TableRow(html, 1, "spiram size", esp_spiram_get_size());
+
+	TableRow(html, 1, "Free", "");
+	size_t dram_free = heap_caps_get_free_size(MALLOC_CAP_DMA);
+	TableRow(html, 2, "DRAM (MALLOC_CAP_DMA)", dram_free);
+
+	size_t internal_ram_free = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+	TableRow(html, 2, "Internal RAM (MALLOC_CAP_INTERNAL)", internal_ram_free);
+
+	size_t spiram_free = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+	TableRow(html, 2, "SPIRAM (MALLOC_CAP_SPIRAM)", spiram_free);
+
+	size_t default_free = heap_caps_get_free_size(MALLOC_CAP_DEFAULT);
+	TableRow(html, 2, "Default Memory (MALLOC_CAP_DEFAULT)", default_free);
+
+	size_t iram_free = heap_caps_get_free_size(MALLOC_CAP_EXEC);
+	TableRow(html, 2, "IRAM (MALLOC_CAP_EXEC)", iram_free);
 
 	// TableRow(html, 1, "himem free", esp_himem_get_free_size());
 	// TableRow(html, 1, "himem phys", esp_himem_get_phys_size());

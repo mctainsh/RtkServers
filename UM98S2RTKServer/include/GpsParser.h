@@ -45,7 +45,7 @@
 // Note : Max RTK packet size id 1029 bytes
 #define MAX_BUFF 1200
 
-const static unsigned int tbl_CRC24Q[] = {
+const static unsigned int tbl_CRC24Q[] PROGMEM = {
 	0x000000, 0x864CFB, 0x8AD50D, 0x0C99F6, 0x93E6E1, 0x15AA1A, 0x1933EC, 0x9F7F17,
 	0xA18139, 0x27CDC2, 0x2B5434, 0xAD18CF, 0x3267D8, 0xB42B23, 0xB8B2D5, 0x3EFE2E,
 	0xC54E89, 0x430272, 0x4F9B84, 0xC9D77F, 0x56A868, 0xD0E493, 0xDC7D65, 0x5A319E,
@@ -138,8 +138,10 @@ public:
 		_pNtripServer2 = pNtripServer2;
 
 		Logln("Start GPS Monitoring");
+		Serial1.begin(115200, SERIAL_8N1, 16, 17);
 		_timeOfLastMessage = millis();
 		_gpsConnected = false;
+	
 		_commandQueue.SendStartupCommands();
 	}
 

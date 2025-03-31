@@ -1,5 +1,6 @@
 {
 	"cSpell.words": [
+		"arduinoespressif",
 		"bodmer",
 		"CIRF",
 		"devicename",
@@ -8,13 +9,16 @@
 		"GNGGA",
 		"GNSS",
 		"himem",
+		"Locn",
 		"NTRIP",
 		"Plotly",
 		"PREAMB",
 		"RTCM",
 		"saveconfig",
 		"SIGNALGROUP",
-		"tzapu"
+		"tsens",
+		"tzapu",
+		"Wemos"
 	],
 	"files.associations": {
 		"array": "cpp",

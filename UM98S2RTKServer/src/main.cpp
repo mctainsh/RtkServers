@@ -13,6 +13,8 @@
 #include <sstream>
 #include <string>
 
+#include "driver/temp_sensor.h"
+
 #include <WiFiManager.h> //https://github.com/tzapu/WiFiManager WiFi Configuration Magic
 
 void SaveBaseLocation(std::string newBaseLocation);
@@ -26,6 +28,7 @@ void LoadBaseLocation();
 #include "MyFiles.h"
 #include <WebPortal.h>
 #include "LedStateTask.h"
+#include "WiFiEvents.h"
 
 WiFiManager _wifiManager;
 
@@ -54,11 +57,13 @@ bool IsWifiConnected();
 String MakeHostName();
 LedStateTask _ledState;
 
+// Temperature history
+char _tempHistory[TEMP_HISTORY_SIZE];
+
 ///////////////////////////////////////////////////////////////////////////////
 // Setup
 void setup(void)
 {
-
 	perror("RTL Server - Starting");
 	perror(APP_VERSION);
 
@@ -74,11 +79,14 @@ void setup(void)
 	// Setup the serial buffer for the GPS port
 	Logf("GPS Buffer size %d", Serial1.setRxBufferSize(GPS_BUFFER_SIZE));
 
-	Logln("Enable RS232 pins");
-	Serial1.begin(115200, SERIAL_8N1, 16, 17);
+	// Zero out the temperature history
+	for (size_t i = 0; i < TEMP_HISTORY_SIZE; i++)
+		_tempHistory[i] = 0;
 
 	Logln("Enable WIFI");
+	SetupWiFiEvents();
 	WiFi.mode(WIFI_AP_STA);
+
 
 	Logln("Enable Buttons");
 	// pinMode(BUTTON_1, INPUT_PULLUP);
@@ -152,15 +160,31 @@ void loop()
 	{
 		auto free = ESP.getFreeHeap();
 		auto total = ESP.getHeapSize();
-	
+
+		// Enable temperature sensor
+		if ((temp_sensor_start()) != ESP_OK)
+			Logln("E100 - Failed to start temperature sensor");
+		// Get converted sensor data
+		float tsens_out;
+		if (temp_sensor_read_celsius(&tsens_out))
+			Logln("E101 - Failed to read temperature sensor");
+		// Disable the temperature sensor if it is not needed and save the power
+		if (temp_sensor_stop())
+			Logln("E102 - Failed to stop temperature sensor");
+
+		// Save the temperature history once per 60 seconds
+		auto tempIndex = (millis() / (60 * 1000)) % TEMP_HISTORY_SIZE;
+		_tempHistory[tempIndex] = (char)tsens_out;
+
 		// Update the loop performance counter
-		Serial.printf("Loop %d G:%ld 1:%ld, 2:%ld 3:%ld Heap:%d%%\n",
+		Serial.printf("Loop %d G:%ld 1:%ld, 2:%ld 3:%ld Heap:%d%% %.1f°C\n",
 					  _loopPersSecondCount,
 					  _gpsParser.GetGpsBytesRec(),
 					  _ntripServer0.GetPacketsSent(),
 					  _ntripServer1.GetPacketsSent(),
 					  _ntripServer2.GetPacketsSent(),
-					  (int)(100.0 * free / total));
+					  (int)(100.0 * free / total),
+					  tsens_out);
 		_loopWaitTime = t;
 		_loopPersSecondCount = 0;
 	}
