@@ -1,8 +1,8 @@
 #pragma once
 
-#define APP_VERSION "3.189"
+#include "LedStateTask.h" // Ensure this header defines LedStateTask
 
-#define APP_CPU_NUM 1
+#define APP_VERSION "3.198"
 
 // Disables logging to serial
 #define SERIAL_LOG
@@ -25,3 +25,5 @@
 // WiFi access point password
 #define AP_PASSWORD "John123456"
 #define BASE_LOCATION_FILENAME "/BaseLocn.txt"
+
+extern LedStateTask _ledState;

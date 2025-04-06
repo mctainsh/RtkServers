@@ -470,7 +470,9 @@ void WebPortal::ShowStatusHtml()
 	TableRow(html, 0, "General", "");
 	TableRow(html, 1, "Version", APP_VERSION);
 
-	TableRow(html, 1, "Manufacturer", USB_MANUFACTURER);
+	#ifndef USB_MANUFACTURER
+	#define USB_MANUFACTURER "Espressif Systems"
+	#endif
 	TableRow(html, 1, "Product", USB_PRODUCT);
 	TableRow(html, 1, "Vendor", USB_FW_MSC_VENDOR_ID);
 

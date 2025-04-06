@@ -78,9 +78,10 @@ public:
 		}
 	}
 
-	bool ReadFile(const char *path, std::string &text)
+	bool ReadFile(const char *path, std::string &text, int maxLength = 256)
 	{
 		Logf("Reading file: %s", path);
+
 		if (xSemaphoreTake(_mutex, portMAX_DELAY))
 		{
 			fs::File file = SPIFFS.open(path);
@@ -92,7 +93,21 @@ public:
 			}
 			Logln("- read from file:");
 			while (file.available())
-				text += file.read();
+			{
+				char ch = static_cast<char>(file.read());
+				if( ch == '\0')
+				{
+					Logln("- read NULL character");
+					break;
+				}
+				text += ch;
+				//text += file.read();
+				if (text.length() > maxLength) // Timeout after 2 seconds
+				{
+					Logf("- read %d bytes is greater than ", text.length(), maxLength);
+					break;
+				}
+			}
 			file.close();
 			xSemaphoreGive(_mutex);
 		}
@@ -102,3 +117,4 @@ public:
 private:
 	SemaphoreHandle_t _mutex; // Thread safe access
 };
+

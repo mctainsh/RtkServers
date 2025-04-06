@@ -128,7 +128,7 @@ public:
 	inline const int32_t GetGpsResetCount() const { return _gpsResetCount; }
 	inline const int32_t GetGpsReinitialize() const { return _gpsReinitialize; }
 	inline const int32_t GetAsciiMsgCount() const { return _asciiMsgCount; }
-	inline const bool HasGpsExpired(unsigned long millis) const { return (millis - _timeOfLastMessage) > GPS_TIMEOUT; }
+	inline const bool HasGpsExpired() const { return (millis() - _timeOfLastMessage) > GPS_TIMEOUT; }
 
 	/// @brief Save links to the NTRIP casters
 	void Setup(NTRIPServer *pNtripServer0, NTRIPServer *pNtripServer1, NTRIPServer *pNtripServer2)
@@ -137,8 +137,8 @@ public:
 		_pNtripServer1 = pNtripServer1;
 		_pNtripServer2 = pNtripServer2;
 
-		Logln("Start GPS Monitoring");
-		Serial1.begin(115200, SERIAL_8N1, 16, 17);
+		Logf("Start GPS Monitoring RX:%d TX:%d", SERIAL_RX, SERIAL_TX);
+		Serial1.begin(115200, SERIAL_8N1, SERIAL_RX, SERIAL_TX);
 		_timeOfLastMessage = millis();
 		_gpsConnected = false;
 	
@@ -157,12 +157,11 @@ public:
 		_commandQueue.CheckForTimeouts();
 
 		// Check for loss of RTK data
-		auto t = millis();
-		if (HasGpsExpired(t))
+		if (HasGpsExpired())
 		{
 			LogX("RTK Data timeout");
 			_gpsConnected = false;
-			_timeOfLastMessage = t;
+			_timeOfLastMessage = millis();
 			_commandQueue.StartInitialiseProcess();
 			_gpsReinitialize++;
 		}
@@ -385,6 +384,8 @@ public:
 				LogX(StringPrintf(" >> E: %d - Skipped %d", _readErrorCount, _missedBytesDuringError));
 				_missedBytesDuringError = 0;
 			}
+
+			_ledState.BlinkGps();
 
 			// Send to server NTRIP Casters
 			_pNtripServer0->EnqueueData(_byteArray, _binaryLength);

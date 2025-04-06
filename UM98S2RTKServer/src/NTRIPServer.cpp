@@ -86,6 +86,9 @@ void NTRIPServer::LoadSettings()
 		return;
 	}
 
+	if (!MULTI_THREAD)
+		return;
+
 	// Start the connection process
 	xTaskCreatePinnedToCore(
 		TaskWrapper,
@@ -129,10 +132,10 @@ void NTRIPServer::TaskFunction()
 		{
 			_lastStackCheck = millis();
 			_maxStackHeight = uxTaskGetStackHighWaterMark(NULL);
-			Serial.printf("%d) Stack:%d St:%d Conn:%d\n", _index, _maxStackHeight, _status, connected);
+			// Serial.printf("%d) Stack:%d St:%d Conn:%d\n", _index, _maxStackHeight, _status, connected);
 			if (!connected)
 			{
-				Serial.printf("     Recon in %d of %d \n", (millis() - _wifiConnectTime), WIFI_TIMEOUTS[_timeOutIndex]);
+				Serial.printf("%d)     Recon in %d of %d \n", _index, (millis() - _wifiConnectTime) / 1000, WIFI_TIMEOUTS[_timeOutIndex] / 1000);
 			}
 		}
 
@@ -152,6 +155,48 @@ void NTRIPServer::TaskFunction()
 		// Delete the item
 		delete pItem;
 	}
+}
+
+void NTRIPServer::Process(const byte *pBytes, int length)
+{
+	// Every 10 seconds log stack height and task stack height
+	bool connected = _client.connected();
+	if ((millis() - _lastStackCheck) > 10000)
+	{
+		_lastStackCheck = millis();
+		_maxStackHeight = uxTaskGetStackHighWaterMark(NULL);
+		// Serial.printf("%d) Stack:%d St:%d Conn:%d\n", _index, _maxStackHeight, _status, connected);
+		if (!connected)
+		{
+			Serial.printf("%d)     Recon in %d of %d \n", _index, (millis() - _wifiConnectTime) / 1000, WIFI_TIMEOUTS[_timeOutIndex] / 1000);
+		}
+	}
+
+	// Wifi check interval
+	if (_client.connected())
+	{
+		ConnectedProcessing(pBytes, length);
+	}
+	else
+	{
+		_wasConnected = false;
+		_status = ConnectionState::Disconnected;
+		Reconnect();
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Check if the connection has expired. ie Not sending RTK data
+const bool NTRIPServer::HasConnectionExpired()
+{
+	if (_status == ConnectionState::Disabled)
+		return true;
+	if ((millis() - _lastGoodSend) > RTK_SEND_TIMEOUT_MS)
+	{
+		LogX(StringPrintf("Caster %d expired", _index));
+		return true;
+	}
+	return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -234,6 +279,7 @@ void NTRIPServer::ConnectedProcessingSend(const byte *pBytes, int length)
 	}
 	else
 	{
+		_ledState.BlinkNtrip(_index);
 		// Record max send time
 		if (_maxSendTime == 0)
 			_maxSendTime = time;
@@ -356,7 +402,7 @@ bool NTRIPServer::Reconnect()
 
 	if (!WriteText(StringPrintf("SOURCE %s %s\r\n", _sPassword.c_str(), _sCredential.c_str()).c_str()))
 		return false;
-	if (!WriteText("Source-Agent: NTRIP UM98/ESP32_T_Display_SX\r\n"))
+	if (!WriteText(SOURCE_AGENT))
 		return false;
 	if (!WriteText("STR: \r\n"))
 		return false;
@@ -406,6 +452,12 @@ const char *NTRIPServer::GetStatus() const
 // If memory allocation for QueueData fails, the method returns false.
 bool NTRIPServer::EnqueueData(const byte *pBytes, int length)
 {
+	if (!MULTI_THREAD)
+	{
+		Process(pBytes, length);
+		return true;
+	}
+
 	// Don't queue if disabled
 	if (_status == ConnectionState::Disabled)
 		return false;

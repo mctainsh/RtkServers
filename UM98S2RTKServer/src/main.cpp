@@ -74,7 +74,7 @@ void setup(void)
 
 	_ledState.Set(2);
 
-	Logf("Starting %s", APP_VERSION);
+	Logf("Starting %s. Cores:%d", APP_VERSION, configNUM_CORES);
 
 	// Setup the serial buffer for the GPS port
 	Logf("GPS Buffer size %d", Serial1.setRxBufferSize(GPS_BUFFER_SIZE));
@@ -85,9 +85,9 @@ void setup(void)
 
 	Logln("Enable WIFI");
 	SetupWiFiEvents();
-	WiFi.mode(WIFI_AP_STA);
-
-
+	WiFi.mode(WIFI_AP_STA);	
+    _wifiManager.setDebugOutput(true);
+	
 	Logln("Enable Buttons");
 	// pinMode(BUTTON_1, INPUT_PULLUP);
 	// pinMode(BUTTON_2, INPUT_PULLUP);
@@ -109,32 +109,35 @@ void setup(void)
 	_ntripServer1.LoadSettings();
 	_ntripServer2.LoadSettings();
 
-	//	Logf("Display type %d", USER_SETUP_ID);
+	_ledState.Set(4);
 
 	// Reset Wifi Setup if needed (Do tis to clear out old wifi credentials)
 	//_wifiManager.erase();
 
 	// Setup host name to have RTK_ prefix
-	WiFi.setHostname(MakeHostName().c_str());
+	auto hostName = MakeHostName();
+	WiFi.setHostname(hostName.c_str());
 
 	// Block here till we have WiFi credentials (good or bad)
-	Logf("Start listening on '%s'", MakeHostName().c_str());
+	Logf("Start listening on '%s'", hostName.c_str());
 
 	// Try at ever increasing timeouts
 	const unsigned long WIFI_CONNECT_TIMEOUTS[] = {15, 30, 30, 300};
 	const int WIFI_CONNECT_TIMEOUTS_SIZE = sizeof(WIFI_CONNECT_TIMEOUTS) / sizeof(WIFI_CONNECT_TIMEOUTS[0]);
-	int _connectIndex = 0;
+	int connectIndex = 0;
+
 	while (WiFi.status() != WL_CONNECTED)
 	{
-		if (_connectIndex >= WIFI_CONNECT_TIMEOUTS_SIZE)
-			_connectIndex = WIFI_CONNECT_TIMEOUTS_SIZE - 1;
-		_wifiManager.setConfigPortalTimeout(WIFI_CONNECT_TIMEOUTS[_connectIndex]);
-		Logf("\tTry WIFI Connection %ds", WIFI_CONNECT_TIMEOUTS[_connectIndex]);
-		_wifiManager.autoConnect(WiFi.getHostname(), AP_PASSWORD);
-		_connectIndex++;
+		if (connectIndex >= WIFI_CONNECT_TIMEOUTS_SIZE)
+			connectIndex = WIFI_CONNECT_TIMEOUTS_SIZE - 1;
+		_wifiManager.setConfigPortalTimeout(WIFI_CONNECT_TIMEOUTS[connectIndex]);
+		Logf("\tTry WIFI Connection %ds", WIFI_CONNECT_TIMEOUTS[connectIndex]);
+
+		_wifiManager.autoConnect(hostName.c_str(), AP_PASSWORD);
+		connectIndex++;
 	}
 
-	_ledState.Set(4);
+	_ledState.Set(5);
 
 	// Connected - we have a valid IP address
 	Logf("================ Connected IP : %s ================", WiFi.localIP().toString().c_str());
@@ -146,7 +149,7 @@ void setup(void)
 	_webPortal.Setup();
 	Logln("Setup complete");
 
-	_ledState.Set(5);
+	_ledState.Set(6);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -177,14 +180,15 @@ void loop()
 		_tempHistory[tempIndex] = (char)tsens_out;
 
 		// Update the loop performance counter
-		Serial.printf("Loop %d G:%ld 1:%ld, 2:%ld 3:%ld Heap:%d%% %.1f°C\n",
+		Serial.printf("Loop %d G:%ld 1:%ld, 2:%ld 3:%ld Heap:%d%% %.1f°C %s\n",
 					  _loopPersSecondCount,
 					  _gpsParser.GetGpsBytesRec(),
 					  _ntripServer0.GetPacketsSent(),
 					  _ntripServer1.GetPacketsSent(),
 					  _ntripServer2.GetPacketsSent(),
 					  (int)(100.0 * free / total),
-					  tsens_out);
+					  tsens_out,
+					  WiFi.localIP().toString().c_str());
 		_loopWaitTime = t;
 		_loopPersSecondCount = 0;
 	}
@@ -207,15 +211,16 @@ void loop()
 	// Check for new data GPS serial data
 	if (IsWifiConnected())
 	{
+		_ledState.BlinkWifi();
 		// Check if we has active WIFI connections
 		if ((t - _recheckWifiAliveTime) > 10000)
 		{
-			_recheckWifiAliveTime = t;
+			_recheckWifiAliveTime = millis();
 			// Check the NTRIP servers are alive
-			if (!_gpsParser.HasGpsExpired(t) &&
-				_ntripServer0.HasConnectionExpired(t) &&
-				_ntripServer1.HasConnectionExpired(t) &&
-				_ntripServer2.HasConnectionExpired(t))
+			if (!_gpsParser.HasGpsExpired() &&
+				_ntripServer0.HasConnectionExpired() &&
+				_ntripServer1.HasConnectionExpired() &&
+				_ntripServer2.HasConnectionExpired())
 			{
 				Logln("E905 - All NTRIP servers expired (Suspect WIFI outage)");
 				WiFi.disconnect(true, false);
