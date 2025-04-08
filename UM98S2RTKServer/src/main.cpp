@@ -35,7 +35,7 @@ WiFiManager _wifiManager;
 unsigned long _loopWaitTime = 0;		 // Time of last second
 int _loopPersSecondCount = 0;			 // Number of times the main loops runs in a second
 unsigned long _lastButtonPress = 0;		 // Time of last button press to turn off display on T-Display-S3
-unsigned long _recheckWifiAliveTime = 0; // Time we last checked for wifi alive
+//unsigned long _recheckWifiAliveTime = 0; // Time we last checked for wifi alive
 
 WebPortal _webPortal;
 
@@ -70,9 +70,11 @@ void setup(void)
 	// No logging before here
 	Serial.begin(115200); // Using perror() instead
 
+	_ledState.Set(0);
+
 	SetupLog(); // Call this before any logging
 
-	_ledState.Set(2);
+	_ledState.Set(1);
 
 	Logf("Starting %s. Cores:%d", APP_VERSION, configNUM_CORES);
 
@@ -85,9 +87,11 @@ void setup(void)
 
 	Logln("Enable WIFI");
 	SetupWiFiEvents();
-	WiFi.mode(WIFI_AP_STA);	
-    _wifiManager.setDebugOutput(true);
-	
+	WiFi.mode(WIFI_AP_STA);
+	_wifiManager.setDebugOutput(true);
+
+	_ledState.Set(2);
+
 	Logln("Enable Buttons");
 	// pinMode(BUTTON_1, INPUT_PULLUP);
 	// pinMode(BUTTON_2, INPUT_PULLUP);
@@ -150,6 +154,7 @@ void setup(void)
 	Logln("Setup complete");
 
 	_ledState.Set(6);
+	_ledState.On(0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -161,6 +166,7 @@ void loop()
 	_loopPersSecondCount++;
 	if ((t - _loopWaitTime) > 10000)
 	{
+		_loopWaitTime = t;
 		auto free = ESP.getFreeHeap();
 		auto total = ESP.getHeapSize();
 
@@ -180,16 +186,22 @@ void loop()
 		_tempHistory[tempIndex] = (char)tsens_out;
 
 		// Update the loop performance counter
-		Serial.printf("Loop %d G:%ld 1:%ld, 2:%ld 3:%ld Heap:%d%% %.1f°C %s\n",
-					  _loopPersSecondCount,
-					  _gpsParser.GetGpsBytesRec(),
-					  _ntripServer0.GetPacketsSent(),
-					  _ntripServer1.GetPacketsSent(),
-					  _ntripServer2.GetPacketsSent(),
-					  (int)(100.0 * free / total),
-					  tsens_out,
-					  WiFi.localIP().toString().c_str());
-		_loopWaitTime = t;
+		auto notes = StringPrintf("Loop %d G:%ld 1:%ld, 2:%ld 3:%ld Heap:%d%% %.1f°C %s\n",
+								  _loopPersSecondCount,
+								  _gpsParser.GetGpsBytesRec(),
+								  _ntripServer0.GetPacketsSent(),
+								  _ntripServer1.GetPacketsSent(),
+								  _ntripServer2.GetPacketsSent(),
+								  (int)(100.0 * free / total),
+								  tsens_out,
+								  WiFi.localIP().toString().c_str());
+
+#ifdef S3_MINI
+		perror(notes.c_str());
+#else
+		Serial.print(notes.c_str());
+#endif
+
 		_loopPersSecondCount = 0;
 	}
 
@@ -212,21 +224,20 @@ void loop()
 	if (IsWifiConnected())
 	{
 		_ledState.BlinkWifi();
-		// Check if we has active WIFI connections
-		if ((t - _recheckWifiAliveTime) > 10000)
-		{
-			_recheckWifiAliveTime = millis();
-			// Check the NTRIP servers are alive
-			if (!_gpsParser.HasGpsExpired() &&
-				_ntripServer0.HasConnectionExpired() &&
-				_ntripServer1.HasConnectionExpired() &&
-				_ntripServer2.HasConnectionExpired())
-			{
-				Logln("E905 - All NTRIP servers expired (Suspect WIFI outage)");
-				WiFi.disconnect(true, false);
-				//_wifiManager.disconnect();
-			}
-		}
+		// // Check if we has active WIFI connections
+		// if ((t - _recheckWifiAliveTime) > 10000)
+		// {
+		// 	_recheckWifiAliveTime = millis();
+		// 	// Check the NTRIP servers are alive
+		// 	if (!_gpsParser.HasGpsExpired() &&
+		// 		_ntripServer0.HasConnectionExpired() &&
+		// 		_ntripServer1.HasConnectionExpired() &&
+		// 		_ntripServer2.HasConnectionExpired())
+		// 	{
+		// 		Logln("E905 - All NTRIP servers expired (Suspect WIFI outage)");
+		// 		WiFi.disconnect(true, false);
+		// 	}
+		// }
 
 		// Process the GPS data
 		if (_gpsParser.ReadDataFromSerial(Serial1))

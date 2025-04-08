@@ -58,9 +58,11 @@ std::string Logln(const char *msg)
 {
 	std::string s = AddToLog(msg);
 #ifdef SERIAL_LOG
-	// perror(s.c_str());
 	Serial.print(s.c_str());
 	Serial.print("\n");
+#endif
+#ifdef S3_MINI
+	perror(s.c_str());
 #endif
 	return s;
 }

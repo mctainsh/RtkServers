@@ -1,20 +1,62 @@
-# UM982 RTK Server with TTGO T-Display-S3 (Multi miner)
+# UM982 RTK Server with WEMOS LOLIN S2 Mini and WEMOS LOLIN S3 Mini (Multi miner)
 
-This project connects a UM980 or UM982 RTK GNSS receiver to a TTGO T-Display/-S3 allowing you to share RTK correction data with up to three networks at one time (Some give mining rewards). The ESP32 will automatically program the UM980/2 so there is no need to mess around with terminals or or the UPrecise software.
+This project connects a UM980 or UM982 RTK GNSS receiver to a WEMOS LOLIN S3 Mini allowing you to share RTK correction data with up to three networks at one time (Some give mining rewards). The ESP32 will automatically program the UM980/2 so there is no need to mess around with terminals or or the UPrecise software.
 
 All up you it will cost about US$200 to make the station with GNSS receiver, antenna and ESP32 with display. 
 
-If you want to send to more than three casters you can connect a second ESP32 in parallel to the TX port of the UM98x and power both ESP32's at the some time. No need for a second UM98x or expensive splitters.
+If you want to send to more than three casters you can connect a second ESP32 in parallel to the TX port of the UM98x and power both ESP32's at the some time. No need for a second UM98x or expensive antennas or splitters.
 
-The display also allow you to see at an instant if the system is connected and sending to all the casters
+There is not display just a box with blinking leds like the HAL 2000
 
-<div style="display: flex; gap:10px;">
-	<img src="https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/Photos/TTGO-Display-S3/S3-Screen-Home.jpg?raw=true" width="180" />
-	<img src="https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/Photos/TTGO-Display-S3/S3-Screen-GPS.jpg?raw=true" width="180" />
-	<img src="https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/Photos/TTGO-Display-S3/S3-Screen-RTK.jpg?raw=true" width="180" />
-</div>
+NOTE : Although the S2 cpu is able to send data to three RTK casters, if one of the casters fails to receive the message (blocks) the other will be delayed. This is because the S2 only has a single CPU core. Recommend using an S3
 
-NOTE : Although the code is able to send data to three RTK casters, if one of the casters fails to receive the message (blocks) the other will be delayed. I'm working on a better option to make non blocking socket calls or daisy chain ESP-S2-Mini's to handle more casters.
+```
+This project is for people who already have the S2 or S3 chip. If you are buying a ESP32 for this project, I recommend the T-Display-S3 as it is about US$10 more but will save you hours of time and look nicer attracting a more desirable mate.
+```
+
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
+DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
 
 <img src="https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/Photos/TTGO-Display-S3/T-Display-S3-UM982_Boxed.jpg?raw=true" width="400" />
 

@@ -7,13 +7,27 @@
 #include "Global.h"
 #include "HandyString.h"
 
-#define LED1 13
-#define LED2 11
-#define LED3 9
-#define LED4 7
-#define LED5 3
-#define LED6 1
-#define LED_COUNT 6
+// S3 Mini
+#ifdef S3_MINI
+	#define LED1 9
+	#define LED2 11
+	#define LED3 13
+	#define LED4 12
+	#define LED5 2
+	#define LED6 1
+	#define LED_COUNT 6
+#endif
+
+// S2 Mini
+#ifdef S2_MINI
+	#define LED1 13
+	#define LED2 11
+	#define LED3 9
+	#define LED4 7
+	#define LED5 3
+	#define LED6 1
+	#define LED_COUNT 6
+#endif
 
 ///////////////////////////////////////////////////////////////////////////
 // Class create a task to update the display showing a count down during
@@ -97,11 +111,11 @@ public:
 			vTaskDelay(50 / portTICK_PERIOD_MS);
 
 			loopNo++;
-			digitalWrite(LED_BUILTIN, ( loopNo / 20 ) % 2);
-			//if (loopNo % 10 = 0)
+			digitalWrite(LED_BUILTIN, (loopNo / 20) % 2);
+			// if (loopNo % 10 = 0)
 			//{
 			//	loopNo = 0;
-				// Serial.println("+++++ LedStateTask Looping");
+			//  Serial.println("+++++ LedStateTask Looping");
 			//}
 			// const int blinkDuration = 200; // Blink time in ms
 
@@ -141,6 +155,14 @@ public:
 		_state = state;
 		if (0 <= state && state < LED_COUNT)
 			digitalWrite(LEDS[state], LOW);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// TUrn on the LED permanently
+	void On(int state)
+	{
+		if (0 <= state && state < LED_COUNT)
+			digitalWrite(LEDS[state], HIGH);
 	}
 
 	void BlinkGps()
