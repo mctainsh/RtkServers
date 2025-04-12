@@ -66,7 +66,8 @@ void setup(void)
 {
 	perror("RTL Server - Starting");
 	perror(APP_VERSION);
-
+	_ledState.Setup(); // Setup the LED state task
+	
 	// No logging before here
 	Serial.begin(115200); // Using perror() instead
 
@@ -174,7 +175,7 @@ void loop()
 		if ((temp_sensor_start()) != ESP_OK)
 			Logln("E100 - Failed to start temperature sensor");
 		// Get converted sensor data
-		float tsens_out;
+		float tsens_out = 0.0;
 		if (temp_sensor_read_celsius(&tsens_out))
 			Logln("E101 - Failed to read temperature sensor");
 		// Disable the temperature sensor if it is not needed and save the power

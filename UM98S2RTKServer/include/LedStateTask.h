@@ -47,10 +47,10 @@ private:
 
 public:
 	/////////////////////////////////////////////////////////////////////////////
-	// Constructor
+	// Setup the task and start it
 	// .. Create task
 	// .. Start task
-	LedStateTask()
+	void Setup()
 	{
 		// Setup LED and turn it on
 		pinMode(LED_BUILTIN, OUTPUT);
@@ -61,7 +61,7 @@ public:
 		pinMode(LED5, OUTPUT);
 		pinMode(LED6, OUTPUT);
 
-		digitalWrite(LED_BUILTIN, HIGH);
+		//digitalWrite(LED_BUILTIN, HIGH);	// Fuck knows why this line of code kills the CPU
 		digitalWrite(LED1, HIGH);
 		digitalWrite(LED2, HIGH);
 		digitalWrite(LED3, HIGH);

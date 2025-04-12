@@ -248,21 +248,25 @@ void NTRIPServer::ConnectedProcessingSend(const byte *pBytes, int length)
 
 		int errorCode = errno;
 		const char *errorMsg = strerror(errno);
-		LogX(StringPrintf(" --- Error: %d - %s", errorCode, errorMsg));
+		//LogX(StringPrintf(" --- Error: %d - %s", errorCode, errorMsg));
 
 		// Check for buffer full and sleep for a bit
-		//	if (errorCode == EWOULDBLOCK)
-		//	{
-		//		LogX("\tSocket buffer full - try again later");
-		//		vTaskDelay(1000 / portTICK_PERIOD_MS);
-		//		return;
-		//	}
+		if (errorCode == EWOULDBLOCK)
+		{
+				LogX(StringPrintf(" --- Socket would block - buffer full. Try %d", _consecutiveTimeouts));
+			_totalTimeouts++;
+			vTaskDelay(100 / portTICK_PERIOD_MS);
+			_consecutiveTimeouts++;
+			if (_consecutiveTimeouts < 3)
+				return;
+		}
+		_consecutiveTimeouts = 0;
 
 		// Check specific error conditions
-		if (errorCode == EWOULDBLOCK)
-			LogX(" --- Socket would block - buffer full");
-		else if (errorCode == ENOTCONN)
+		if (errorCode == ENOTCONN)
 			LogX(" --- Socket not connected");
+		//else if (errorCode == EWOULDBLOCK)
+		//	LogX(" --- Socket would block - buffer full");
 		else if (errorCode == ECONNRESET)
 			LogX(" --- Connection reset by peer");
 		else if (errorCode == ETIMEDOUT)
@@ -273,12 +277,15 @@ void NTRIPServer::ConnectedProcessingSend(const byte *pBytes, int length)
 			LogX(" --- Broken pipe - connection closed by peer");
 		else if (errorCode == EINVAL)
 			LogX(" --- Invalid argument - check socket options");
+		else
+			LogX(StringPrintf(" --- Error: %d - %s", errorCode, errorMsg));
 
 		_client.stop();
 		_status = ConnectionState::Disconnected;
 	}
 	else
 	{
+		_consecutiveTimeouts = 0;
 		_ledState.BlinkNtrip(_index);
 		// Record max send time
 		if (_maxSendTime == 0)
@@ -523,7 +530,7 @@ QueueData *NTRIPServer::DequeueData()
 			QueueData *pItem = _dataQueue[0];
 			_dataQueue.erase(_dataQueue.begin());
 
-			// CHeck for null item (This should never happen)
+			// Check for null item (This should never happen)
 			if (pItem == nullptr)
 			{
 				LogX("DequeueData: Null item in queue");
