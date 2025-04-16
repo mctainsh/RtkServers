@@ -13,8 +13,6 @@
 #include <sstream>
 #include <string>
 
-#include "driver/temp_sensor.h"
-
 #include <WiFiManager.h> //https://github.com/tzapu/WiFiManager WiFi Configuration Magic
 
 void SaveBaseLocation(std::string newBaseLocation);
@@ -29,6 +27,7 @@ void LoadBaseLocation();
 #include <WebPortal.h>
 #include "LedStateTask.h"
 #include "WiFiEvents.h"
+#include "History.h"
 
 WiFiManager _wifiManager;
 
@@ -56,9 +55,7 @@ bool IsButtonReleased(uint8_t button, uint8_t *pCurrent);
 bool IsWifiConnected();
 String MakeHostName();
 LedStateTask _ledState;
-
-// Temperature history
-char _tempHistory[TEMP_HISTORY_SIZE];
+History _history;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Setup
@@ -81,10 +78,6 @@ void setup(void)
 
 	// Setup the serial buffer for the GPS port
 	Logf("GPS Buffer size %d", Serial1.setRxBufferSize(GPS_BUFFER_SIZE));
-
-	// Zero out the temperature history
-	for (size_t i = 0; i < TEMP_HISTORY_SIZE; i++)
-		_tempHistory[i] = 0;
 
 	Logln("Enable WIFI");
 	SetupWiFiEvents();
@@ -171,20 +164,7 @@ void loop()
 		auto free = ESP.getFreeHeap();
 		auto total = ESP.getHeapSize();
 
-		// Enable temperature sensor
-		if ((temp_sensor_start()) != ESP_OK)
-			Logln("E100 - Failed to start temperature sensor");
-		// Get converted sensor data
-		float tsens_out = 0.0;
-		if (temp_sensor_read_celsius(&tsens_out))
-			Logln("E101 - Failed to read temperature sensor");
-		// Disable the temperature sensor if it is not needed and save the power
-		if (temp_sensor_stop())
-			Logln("E102 - Failed to stop temperature sensor");
-
-		// Save the temperature history once per 60 seconds
-		auto tempIndex = (millis() / (60 * 1000)) % TEMP_HISTORY_SIZE;
-		_tempHistory[tempIndex] = (char)tsens_out;
+	float temperature = _history.CheckTemperatureLoop(); // Read the current temperature
 
 		// Update the loop performance counter
 		auto notes = StringPrintf("Loop %d G:%ld 1:%ld, 2:%ld 3:%ld Heap:%d%% %.1f°C %s\n",
@@ -194,7 +174,7 @@ void loop()
 								  _ntripServer1.GetPacketsSent(),
 								  _ntripServer2.GetPacketsSent(),
 								  (int)(100.0 * free / total),
-								  tsens_out,
+								  temperature,
 								  WiFi.localIP().toString().c_str());
 
 #ifdef S3_MINI

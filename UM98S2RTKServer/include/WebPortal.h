@@ -5,6 +5,7 @@
 #include "HandyString.h"
 #include "NTRIPServer.h"
 #include "GpsParser.h"
+#include "History.h"
 
 extern WiFiManager _wifiManager;
 extern NTRIPServer _ntripServer0;
@@ -12,7 +13,7 @@ extern NTRIPServer _ntripServer1;
 extern NTRIPServer _ntripServer2;
 extern GpsParser _gpsParser;
 extern std::string _baseLocation;
-extern char _tempHistory[TEMP_HISTORY_SIZE];
+extern History  _history;
 
 /// @brief Class manages the web pages displayed in the device.
 class WebPortal
@@ -246,7 +247,7 @@ void WebPortal::GraphTemperature() const
 	<body style='padding:10px;'>\
 	<h3>Temperature C</h3>";
 
-	GraphArray(html, "T", _tempHistory, TEMP_HISTORY_SIZE);
+	GraphArray(html, "T", _history.GetTemperatures(), TEMP_HISTORY_SIZE);
 
 	html += "</body>";
 	html += "</html>";

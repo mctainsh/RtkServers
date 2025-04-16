@@ -9,24 +9,24 @@
 
 // S3 Mini
 #ifdef S3_MINI
-	#define LED1 9
-	#define LED2 11
-	#define LED3 13
-	#define LED4 12
-	#define LED5 2
-	#define LED6 1
-	#define LED_COUNT 6
+#define LED1 9
+#define LED2 11
+#define LED3 13
+#define LED4 12
+#define LED5 2
+#define LED6 1
+#define LED_COUNT 6
 #endif
 
 // S2 Mini
 #ifdef S2_MINI
-	#define LED1 13
-	#define LED2 11
-	#define LED3 9
-	#define LED4 7
-	#define LED5 3
-	#define LED6 1
-	#define LED_COUNT 6
+#define LED1 13
+#define LED2 11
+#define LED3 9
+#define LED4 7
+#define LED5 3
+#define LED6 1
+#define LED_COUNT 6
 #endif
 
 ///////////////////////////////////////////////////////////////////////////
@@ -61,7 +61,7 @@ public:
 		pinMode(LED5, OUTPUT);
 		pinMode(LED6, OUTPUT);
 
-		//digitalWrite(LED_BUILTIN, HIGH);	// Fuck knows why this line of code kills the CPU
+		// digitalWrite(LED_BUILTIN, HIGH);	// Fuck knows why this line of code kills the CPU if call before Setup()
 		digitalWrite(LED1, HIGH);
 		digitalWrite(LED2, HIGH);
 		digitalWrite(LED3, HIGH);
@@ -72,11 +72,11 @@ public:
 		// Setup the task
 		xTaskCreatePinnedToCore(
 			TaskWrapper,
-			"WifiBusyCountDown", // Task name
-			5000,				 // Stack size (bytes)
-			this,				 // Parameter
-			25,					 // Task priority
-			&_connectingTask,	 // Task handle
+			"LedFlasher",	  // Task name
+			5000,			  // Stack size (bytes)
+			this,			  // Parameter
+			25,				  // Task priority
+			&_connectingTask, // Task handle
 			APP_CPU_NUM);
 	}
 
@@ -111,7 +111,13 @@ public:
 			vTaskDelay(50 / portTICK_PERIOD_MS);
 
 			loopNo++;
-			digitalWrite(LED_BUILTIN, (loopNo / 20) % 2);
+
+			auto blinkCount = (loopNo / 20) % 10;
+			if (blinkCount > _state)
+				digitalWrite(LED_BUILTIN, LOW);
+			else
+				digitalWrite(LED_BUILTIN, (loopNo / 20) % 2);
+
 			// if (loopNo % 10 = 0)
 			//{
 			//	loopNo = 0;
