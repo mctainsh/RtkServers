@@ -9,24 +9,24 @@
 
 // S3 Mini
 #ifdef S3_MINI
-#define LED1 9
-#define LED2 11
-#define LED3 13
-#define LED4 12
-#define LED5 2
-#define LED6 1
-#define LED_COUNT 6
+	#define LED1 9
+	#define LED2 11
+	#define LED3 13
+	#define LED4 12
+	#define LED5 2
+	#define LED6 1
+	#define LED_COUNT 6
 #endif
 
 // S2 Mini
 #ifdef S2_MINI
-#define LED1 13
-#define LED2 11
-#define LED3 9
-#define LED4 7
-#define LED5 3
-#define LED6 1
-#define LED_COUNT 6
+	#define LED1 13
+	#define LED2 11
+	#define LED3 9
+	#define LED4 7
+	#define LED5 3
+	#define LED6 1
+	#define LED_COUNT 6
 #endif
 
 ///////////////////////////////////////////////////////////////////////////
@@ -110,31 +110,16 @@ public:
 			// Don't work this thread too hard
 			vTaskDelay(50 / portTICK_PERIOD_MS);
 
+			// Blink the build in LED the number of times matching the startup state
 			loopNo++;
-
-			auto blinkCount = (loopNo / 20) % 10;
-			if (blinkCount > _state)
+			auto divider = loopNo / 4;
+			auto blinkCount = divider % 18;
+			if (blinkCount > _state * 2)
 				digitalWrite(LED_BUILTIN, LOW);
 			else
-				digitalWrite(LED_BUILTIN, (loopNo / 20) % 2);
+				digitalWrite(LED_BUILTIN, divider % 2);
 
-			// if (loopNo % 10 = 0)
-			//{
-			//	loopNo = 0;
-			//  Serial.println("+++++ LedStateTask Looping");
-			//}
-			// const int blinkDuration = 200; // Blink time in ms
-
-			// // Blink required number of times
-			// for (int n = 0; n < _state; n++)
-			// {
-			// 	// Serial.println("+++++ LedStateTask Connected");
-			// 	digitalWrite(LED_BUILTIN, HIGH);
-			// 	vTaskDelay(blinkDuration / portTICK_PERIOD_MS);
-			// 	digitalWrite(LED_BUILTIN, LOW);
-			// 	vTaskDelay(blinkDuration / portTICK_PERIOD_MS);
-			// }
-
+			// Turn the additional LEDs off after they have been on for 100ms	
 			for (int n = 0; n < LED_COUNT; n++)
 			{
 				if (_ledOnTime[n] == 0)

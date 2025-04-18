@@ -1,62 +1,18 @@
-# UM982 RTK Server with WEMOS LOLIN S2 Mini and WEMOS LOLIN S3 Mini (Multi miner)
+# UM982 RTK Server with WEMOS LOLIN S2 or S3 Mini and And some other ESP32 S3 (Multi miner)
 
 This project connects a UM980 or UM982 RTK GNSS receiver to a WEMOS LOLIN S3 Mini allowing you to share RTK correction data with up to three networks at one time (Some give mining rewards). The ESP32 will automatically program the UM980/2 so there is no need to mess around with terminals or or the UPrecise software.
 
-All up you it will cost about US$200 to make the station with GNSS receiver, antenna and ESP32 with display. 
+All up you it will cost about US$200 to make the station with GNSS receiver, antenna and ESP32 (Prices may have varied since I wrote this). 
 
 If you want to send to more than three casters you can connect a second ESP32 in parallel to the TX port of the UM98x and power both ESP32's at the some time. No need for a second UM98x or expensive antennas or splitters.
 
-There is not display just a box with blinking leds like the HAL 2000
+There is no display just a box with blinking leds like the HAL 2000
 
-NOTE : Although the S2 cpu is able to send data to three RTK casters, if one of the casters fails to receive the message (blocks) the other will be delayed. This is because the S2 only has a single CPU core. Recommend using an S3
+NOTE : Although the S2 cpu is able to send data to three RTK casters, if one of the casters fails to receive the message (blocks) the other will be delayed. This is because the S2 only has a single CPU core. I highly recommend using an S3
 
 ```
-This project is for people who already have the S2 or S3 chip. If you are buying a ESP32 for this project, I recommend the T-Display-S3 as it is about US$10 more but will save you hours of time and look nicer attracting a more desirable mate.
+This project is for people who already have the S2 or S3 chip. If you are buying a ESP32 for this project, I recommend the T-Display-S3 as it is about US$15 more but will save you hours of time and look nicer attracting a more desirable mate.
 ```
-
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
-DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
 
 <img src="https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/Photos/TTGO-Display-S3/T-Display-S3-UM982_Boxed.jpg?raw=true" width="400" />
 
@@ -76,7 +32,7 @@ DO NOT READ THE REST AS THIS FOR THE WRONG DEVICE
 
 ## Project Overview
 
-This project enables an TTGO T-Display to act as an RTK server sending RTK corrections to up to three casters. Examples of these are be Onocoy, Rtk2Go or RtkDirect.
+This project enables a LOLIN ESP32 S3 Mini to act as an RTK server sending RTK corrections to up to three casters. Examples of these are be Onocoy, Rtk2Go or RtkDirect.
 
 ### Terms
 
@@ -92,23 +48,23 @@ This project enables an TTGO T-Display to act as an RTK server sending RTK corre
  
 1. **UM982 with antenna** - Witte Intelligent WTRTK-982 high-precision positioning and orientation module. I got it from AliExpress for about A$220.00 [Not affiliate link. Find your own seller](https://www.aliexpress.com/item/1005007287184287.html)
  
-2. **ESP32** With display. ONE of the following
+2. **ESP32 S2 or S3 Mini**  
 
 	<table>
 		<tr>
 			<td>
-				<b>TTGO T-Display-S3</b> - <i>(Preferred)</i> ESP32 S3 with Display AliExpress for A$32.00.<br/> [Not an affiliate link shop with care](https://www.aliexpress.com/item/1005004496543314.html)
+				<b>Wemos LOLIN S3 Min</b> - <i>(Preferred)</i> ESP32 S3. AliExpress for US$10.00.<br/> [Not an affiliate link shop with care](https://vi.aliexpress.com/item/1005005449219195.html)
 			</td>
 			<td>
-				<img src="https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/Photos/TTGO-Display-S3/T-Display-S3.jpg?raw=true" />
+				<img src="https://www.wemos.cc/en/latest/_static/boards/s3_mini_v1.0.0_1_16x16.jpg" Height='70px'/>
 			</td>
 		</tr>
 		<tr>
 			<td>
-				<b>TTGO T-Display</b> - ESP32 LX6 with Display AliExpress for A$13.19. <br/>[Not an affiliate link shop with care](https://www.aliexpress.com/item/1005005970553639.html)
+				<b>Wemos LOLIN S2 Mini</b> - Slow single threaded. AliExpress for US$5.00. <br/>[Not an affiliate link shop with care](https://vi.aliexpress.com/item/1005006818259492.html)
 			</td>
 			<td>
-				<img src="https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/Photos/TTGO-Display/T-Display.jpg?raw=true" />
+				<img src="https://www.wemos.cc/en/latest/_images/s2_mini_v1.0.0_1_16x16.jpg" Height='70px' />
 			</td>
 		</tr>
 	</table>
@@ -121,15 +77,15 @@ This project enables an TTGO T-Display to act as an RTK server sending RTK corre
 
 ## Wiring Diagram
 
-### TTGO T-Display-S3
-| TTGO T-Display-S3 Pin | Use | UM982 pin | Use |
+### LOLIN S3 Mini
+| LOLIN Mini Pin | Use | UM982 pin | Use |
 | --- | --- | --- | --- |
 | 5V | 5V| 2 | 5V |
 | G | GND | 5 | GND |
 | NC | |  |  |
 | NC | |  |  |
-| 13 | TX | 3 | RX |
-| 12 | RX | 4 | TX |
+| 17 | TX | 3 | RX |
+| 16 | RX | 4 | TX |
 
 
 <div style="display:flex;">
@@ -137,58 +93,41 @@ This project enables an TTGO T-Display to act as an RTK server sending RTK corre
 	<img src="https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/Photos/Wiring.png?raw=true" Height="320" />
 </div>
 
-### TTGO T-Display
-
-| TTGO T-Display Pin | Use | UM982 pin | Use |
-| --- | --- | --- | --- |
-| 5V | 5V| 2 | 5V |
-| G | GND | 5 | GND |
-| NC | |  |  |
-| 26 | TX | 3 | RX |
-| 25 | RX | 4 | TX |
-
-<img src="https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/Photos/TTGO-Display/T-DIsplay_Schematic.jpg?raw=true" width="400" />
-
-
 ## Software 
 
 ### Features 
 
-- Connected to UM982.
+- Connects to UM982.
  
 - Connects to Wifi.
 
 - Programs the UM982 to send generate RTK correction data
 
-- Sends correction data to both RTK Casters
+- Sends correction data to all RTK Casters
 
 ### ESP32 device setup
 
 Depending on the device you will need to upload the binary
 
-
- - [Upload Binary for TTGO T-Display-S3](https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/README_Upload_T-Display-S3.md)
+ - [Upload Binary for LOLIN S3 Mini](https://github.com/mctainsh/Esp32/blob/main/RtkServers/README_Upload_S3_Mini.md)
 
  - OR
 
- - [Upload Binary for TTGO T-Display](https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/README_Upload_T-Display.md)
-
+ - [Upload Binary for LOLIN S2 Mini](https://github.com/mctainsh/Esp32/blob/main/RtkServers/README_Upload_S2_Mini.md)
 
 ### Connect WIFI
 
 - Connect ESP32 to your HOME WiFi
-	- Power up the TTGO-Display (GPS does not need to be connected)
+	- Power up the ESP32 (GPS does not need to be connected)
 	- Using your phone or computer
 	- Connect to the WIFI access point Rtk_XXXXXXXX (Mac address shown on ESP32 screen)
 	- Password will be `John123456`
 	- Browse to http://192.168.4.1
 	- Select "Configure WiFi"
 	- Select your HOME WiFi network and enter credential
+	- Device will restart
 - Connect your phone or computer to you HOME WiFi 
-	- You should be able to browse to the WiFi address shown on the ESP32 screen (NOT 192.168.4.1)
-
-
-
+	- You should be able to browse to the WiFi address if your device shown in the console during the programming process. If it is not there, Check your router for new devices
 
 ### Config parameters 
 
@@ -215,34 +154,6 @@ Note : You don't need to sign up to all three. Leave the CASTER ADDRESS blank to
 
 WARNING :  Do not run without real credentials or your IP may be blocked!!
 
-### Setup & Installation 
-
-1. **Install VS Code** : Follow [Instructions](https://code.visualstudio.com/docs/setup/setup-overview)
-
-2. **Install the PlatformIO IDE** : Download and install the [PlatformIO](https://platformio.org/install).
- 
-3. **Clone This Repository**
-
-```bash
-git clone https://github.com/mctainsh/Esp32.git
-```
-
-or just copy the files from
-```
-https://github.com/mctainsh/Esp32/tree/main/UM98RTKServer/UM98RTKServer
-```
-4. **Enable the TTGO T-Display header** : To use the TTGO T-Display-S3 with the TFT_eSPI library, you need to make the following changes to the User_Setup.h file in the library.
-
-```
-	.pio\libdeps\lilygo-t-display\TFT_eSPI\User_Setup_Select.h
-	4.1. Comment out the default setup file
-		//#include <User_Setup.h>           // Default setup is root library folder
-	4.2. Uncomment the TTGO T-Display-S3 setup file
-		#include <User_Setups/Setup206_LilyGo_T_Display_S3.h>     // For the LilyGo T-Display S3 based ESP32S3 with ST7789 170 x 320 TFT
-	4.3. Add the following line to the start of the file
-		#define DISABLE_ALL_LIBRARY_WARNINGS
-```
-
 ### Configuration 
 
 1. Create the accounts with [Oncony register](https://console.onocoy.com/auth/register/personal), [RtkDirect](https://cloud.rtkdirect.com/) or [RTK2GO](http://rtk2go.com/sample-page/new-reservation/)
@@ -261,101 +172,27 @@ https://github.com/mctainsh/Esp32/tree/main/UM98RTKServer/UM98RTKServer
 
 8. Review the status and logs through the web interface (http://x.x.x.x/i)
 
-### Important
 
-The T-Display-S3 will turn off it's display after about 30 seconds. This is OK, just press either button to turn it on again.
+### Using Development Environment to Edit the Software (Optional) 
 
-### Display
+1. **Install VS Code** : Follow [Instructions](https://code.visualstudio.com/docs/setup/setup-overview)
 
-The display has several screens you can toggle through them by pressing one of the buttons.
+2. **Install the PlatformIO IDE** : Download and install the [PlatformIO](https://platformio.org/install).
+ 
+3. **Clone This Repository**
 
-The top line of the display shows the following
+```bash
+git clone https://github.com/mctainsh/RtkServers.git
+```
 
-| Type | Usage | 
-| --- | --- | 
-| / | Rotating animation to show main loop is running |
-| Title | Title of the page currently displayed |
-| X | Connection state of RTK Server 3 |
-| X | Connection state of RTK Server 2 |
-| X | Connection state of RTK Server 1 |
-| X | Connection state of WIFI |
-| X | Connection State to UM98x |
+or just copy the files from
+```
+https://github.com/mctainsh/RtkServers
+```
 
-
-### General
-<img src="https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/Photos/TTGO-Display-S3/S3-Screen-Home.jpg?raw=true" width="300"/>
-
-| Title | Meaning | 
-| --- | --- | 
-| Wi-Fi | Wifi IP address. | 
-| Version | Software version | 
-| Up time | How log it has been running. Max 76 days before the counter rolls over  | 
-| Speed | Now many times to process is being checked per second | 
-
-### GPS State
-<img src="https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/Photos/TTGO-Display-S3/S3-Screen-GPS.jpg?raw=true" width="300"/>
-
-| Title | Meaning | 
-| --- | --- | 
-| Type | Type of GPS device. Queried at startup | 
-| Resets |  | 
-| Packets | How many packets have been received | 
-| Serial # | GPS module serial number | 
-| Firmware | GPS module firmware verison | 
-
-### RTK Server
-
-<img src="https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/Photos/TTGO-Display-S3/S3-Screen-RTK.jpg?raw=true" width="300"/>
-
-Only shows the state of the first two casters
-
-| Title | Meaning | 
-| --- | --- | 
-| State | Connection state | 
-| Reconnect | Number of time the connection was lost | 
-| Sends | Number of packets sent | 
-| μs | Microseconds per byte sent | 
-
-### GPS Log
-
-<img src="https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/Photos/TTGO-Display-S3/S3-Screen-Log-GPS.jpg?raw=true" width="300"/>
-
-
-### First RTK Caster Log
-
-<img src="https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/Photos/TTGO-Display-S3/S3-Screen-Log-C1.jpg?raw=true" width="300"/>
-
-### Second RTK Caster Log
-
-<img src="https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/Photos/TTGO-Display-S3/S3-Screen-Log-C2.jpg?raw=true" width="300"/>
-
-### Third RTK Caster Log
-
-<img src="https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/Photos/TTGO-Display-S3/S3-Screen-Log-C3.jpg?raw=true" width="300"/>
-
-## TODO
-
-1. Write instructions to install without compiling with PlatformIO (Using ESP32 Upload tool)
-
-2. Make http sends in non-blocking to prevent one NTRIP server upsetting the others
-
-3. Rework the TTGO T-Display code to make the display nicer (Currently optimized for larger S3)
-
-4. Put each NTRIP server details on its own page
-
-5. Make better looking STL
-
-6. Build one using ESP32-S3 Mini board. Won't have display but will be very compact
 
 ## License 
 This project is licensed under the GNU General Public License - see the [LICENSE](https://github.com/mctainsh/Esp32/blob/main/LICENSE)  file for details.
-
-## More photos
-![T-Display-S3](https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/Photos/T-DISPLAY-S3.jpg?raw=true)
-
-![UM982](https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/Photos/UM982.png?raw=true)
-
-![Dimensions](https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/Photos/UM982-PCB.png?raw=true)
 
 ---
 

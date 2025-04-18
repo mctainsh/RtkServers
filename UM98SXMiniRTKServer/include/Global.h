@@ -2,7 +2,7 @@
 
 #include "LedStateTask.h"
 
-#define APP_VERSION "3.228"
+#define APP_VERSION "3.238"
 
 // Disables logging to serial
 #define SERIAL_LOG
