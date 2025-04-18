@@ -80,7 +80,7 @@ This project enables a LOLIN ESP32 S3 Mini to act as an RTK server sending RTK c
 
 ## Wiring Diagram
 
-<img src="https://github.com/mctainsh/RtkServers/blob/main/Photos/Wiring.png?raw=true"/><br/>
+<img src="https://github.com/mctainsh/RtkServers/blob/main/Photos/Wiring.png?raw=true" Height='500'/><br/>
 
 ### LOLIN S3 Mini
 | LOLIN Mini Pin | Use | UM982 pin | Use |
