@@ -43,10 +43,7 @@ public:
 
 		// Enable temperature sensor
 		if ((temp_sensor_start()) != ESP_OK)
-		{
 			Logln("E100 - Failed to start temperature sensor");
-			return 0.0;
-		}
 
 		// Get converted sensor data
 		float tsens_out = 0.0;
