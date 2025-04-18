@@ -14,8 +14,8 @@ NOTE : Although the S2 cpu is able to send data to three RTK casters, if one of 
 This project is for people who already have the S2 or S3 chip. If you are buying a ESP32 for this project, I recommend the T-Display-S3 as it is about US$15 more but will save you of time and look nicer attracting a more desirable mate.
 ```
 <div style="display: flex; gap:10px;">
-<img src="https://github.com/mctainsh/RtkServers/blob/main/Photos/AssemblyFront.jpg?raw=true" Width=200/><br/>
-<img src="https://github.com/mctainsh/RtkServers/blob/main/Photos/AssemblyBack.jpg?raw=true" Width=200/><br/>
+<img src="https://github.com/mctainsh/RtkServers/blob/main/Photos/Assembly_Front.jpg?raw=true" Width=200/><br/>
+<img src="https://github.com/mctainsh/RtkServers/blob/main/Photos/Assembly_Back.jpg?raw=true" Width=200/><br/>
 </div>
 
 
@@ -194,7 +194,7 @@ https://github.com/mctainsh/RtkServers
 
 This is the CPU, Receiver and Fan assembled on a custom PCB 
 
-<img src="https://github.com/mctainsh/RtkServers/blob/main/Photos/AssembledPCB.jpg?raw=true"/><br/>
+<img src="https://github.com/mctainsh/RtkServers/blob/main/Photos/Assembled_LEDS.jpg?raw=true"/><br/>
 
 ## License 
 This project is licensed under the GNU General Public License - see the [LICENSE](https://github.com/mctainsh/Esp32/blob/main/LICENSE)  file for details.
