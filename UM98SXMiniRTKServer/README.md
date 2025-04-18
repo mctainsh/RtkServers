@@ -11,11 +11,11 @@ There is no display just a box with blinking leds like the HAL 2000
 NOTE : Although the S2 cpu is able to send data to three RTK casters, if one of the casters fails to receive the message (blocks) the other will be delayed. This is because the S2 only has a single CPU core. I highly recommend using an S3
 
 ```
-This project is for people who already have the S2 or S3 chip. If you are buying a ESP32 for this project, I recommend the T-Display-S3 as it is about US$15 more but will save you hours of time and look nicer attracting a more desirable mate.
+This project is for people who already have the S2 or S3 chip. If you are buying a ESP32 for this project, I recommend the T-Display-S3 as it is about US$15 more but will save you of time and look nicer attracting a more desirable mate.
 ```
 <div style="display: flex; gap:10px;">
-<img src="https://github.com/mctainsh/RtkServers/blob/main/Photos/AssemblyFront.png?raw=true"/><br/>
-<img src="https://github.com/mctainsh/RtkServers/blob/main/Photos/AssemblyBack.png?raw=true"/><br/>
+<img src="https://github.com/mctainsh/RtkServers/blob/main/Photos/AssemblyFront.JPG?raw=true" Width=200/><br/>
+<img src="https://github.com/mctainsh/RtkServers/blob/main/Photos/AssemblyBack.JPG?raw=true" Width=200/><br/>
 </div>
 
 
@@ -190,6 +190,11 @@ or just copy the files from
 https://github.com/mctainsh/RtkServers
 ```
 
+### Assembled
+
+This is the CPU, Receiver and Fan assembled on a custom PCB 
+
+<img src="https://github.com/mctainsh/RtkServers/blob/main/Photos/AssembledPCB.JPG?raw=true"/><br/>
 
 ## License 
 This project is licensed under the GNU General Public License - see the [LICENSE](https://github.com/mctainsh/Esp32/blob/main/LICENSE)  file for details.
