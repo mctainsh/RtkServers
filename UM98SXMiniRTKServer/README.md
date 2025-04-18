@@ -13,8 +13,11 @@ NOTE : Although the S2 cpu is able to send data to three RTK casters, if one of 
 ```
 This project is for people who already have the S2 or S3 chip. If you are buying a ESP32 for this project, I recommend the T-Display-S3 as it is about US$15 more but will save you hours of time and look nicer attracting a more desirable mate.
 ```
+<div style="display: flex; gap:10px;">
+<img src="https://github.com/mctainsh/RtkServers/blob/main/Photos/AssemblyFront.png?raw=true"/><br/>
+<img src="https://github.com/mctainsh/RtkServers/blob/main/Photos/AssemblyBack.png?raw=true"/><br/>
+</div>
 
-<img src="https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/Photos/TTGO-Display-S3/T-Display-S3-UM982_Boxed.jpg?raw=true" width="400" />
 
 
 ## Table of Contents 
@@ -26,8 +29,8 @@ This project is for people who already have the S2 or S3 chip. If you are buying
 - [Software](#software)  
   - [Features](#features)
   - [Key Mappings](#key-mappings) 
-  - [Setup & Installation](#setup--installation)
-  - [Usage](#usage)
+  - [Config parameter](#config-parameter)
+  - [Development Environment](#development-environment)
 - [License](#license)
 
 ## Project Overview
@@ -77,6 +80,8 @@ This project enables a LOLIN ESP32 S3 Mini to act as an RTK server sending RTK c
 
 ## Wiring Diagram
 
+<img src="https://github.com/mctainsh/RtkServers/blob/main/Photos/Wiring.png?raw=true"/><br/>
+
 ### LOLIN S3 Mini
 | LOLIN Mini Pin | Use | UM982 pin | Use |
 | --- | --- | --- | --- |
@@ -87,11 +92,6 @@ This project enables a LOLIN ESP32 S3 Mini to act as an RTK server sending RTK c
 | 17 | TX | 3 | RX |
 | 16 | RX | 4 | TX |
 
-
-<div style="display:flex;">
-	<img src="https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/Photos/TTGO-Display-S3/T-DIsplay-S3_Schematic.jpg?raw=true" Height="320" />
-	<img src="https://github.com/mctainsh/Esp32/blob/main/UM98RTKServer/Photos/Wiring.png?raw=true" Height="320" />
-</div>
 
 ## Software 
 
@@ -173,7 +173,7 @@ WARNING :  Do not run without real credentials or your IP may be blocked!!
 8. Review the status and logs through the web interface (http://x.x.x.x/i)
 
 
-### Using Development Environment to Edit the Software (Optional) 
+### Development Environment
 
 1. **Install VS Code** : Follow [Instructions](https://code.visualstudio.com/docs/setup/setup-overview)
 
