@@ -10,7 +10,7 @@ There is no display just a box with blinking leds like the HAL 2000
 
 NOTE : Although the S2 cpu is able to send data to three RTK casters, if one of the casters fails to receive the message (blocks) the other will be delayed. This is because the S2 only has a single CPU core. I highly recommend using an S3
 
-[![IMAGE ALT TEXT HERE](https://github.com/mctainsh/RtkServers/blob/main/Photos/YouTube.png?raw=true)](https://www.youtube.com/watch?v=9XnFgEevcb8)
+[![IMAGE ALT TEXT HERE](https://github.com/mctainsh/RtkServers/blob/main/Photos/YouTube.png?raw=true)](https://www.youtube.com/watch?v=e_-gQ631AqY)
 
 ```
 This project is for people who already have the S2 or S3 chip. If you are buying a ESP32 for this project, I recommend the T-Display-S3 as it is about US$15 more but will save you of time and look nicer attracting a more desirable mate.
@@ -20,7 +20,8 @@ This project is for people who already have the S2 or S3 chip. If you are buying
 <img src="https://github.com/mctainsh/RtkServers/blob/main/Photos/Assembly_Back.jpg?raw=true" Width=200/><br/>
 </div>
 
-
+</br>
+The ESP32 Firmware can be downloaded from [https://1drv.ms/f/s!Avrf6GYUWqyFhtUYAQn6uUMdvsv8OQ?e=aEFKXA](https://1drv.ms/f/s!Avrf6GYUWqyFhtUYAQn6uUMdvsv8OQ?e=aEFKXA)
 
 ## Table of Contents 
  
