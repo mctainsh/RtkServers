@@ -9,24 +9,30 @@
 
 // S3 Mini
 #ifdef S3_MINI
-	#define LED1 9
-	#define LED2 11
-	#define LED3 13
-	#define LED4 12
-	#define LED5 2
-	#define LED6 1
-	#define LED_COUNT 6
+#define LED1 9
+#define LED2 11
+#define LED3 13
+#define LED4 12
+#define LED5 2
+#define LED6 1
+#define LED_COUNT 6
+#endif
+
+// S3 Zero
+#ifdef S3_ZERO
+#include <Adafruit_NeoPixel.h>
+#define LED_PIN 21
 #endif
 
 // S2 Mini
 #ifdef S2_MINI
-	#define LED1 13
-	#define LED2 11
-	#define LED3 9
-	#define LED4 7
-	#define LED5 3
-	#define LED6 1
-	#define LED_COUNT 6
+#define LED1 13
+#define LED2 11
+#define LED3 9
+#define LED4 7
+#define LED5 3
+#define LED6 1
+#define LED_COUNT 6
 #endif
 
 ///////////////////////////////////////////////////////////////////////////
@@ -40,10 +46,13 @@ class LedStateTask
 private:
 	int _state = 1;
 	TaskHandle_t _connectingTask = NULL;
-
+#ifdef S3_ZERO
+	Adafruit_NeoPixel pixels{2, LED_PIN, NEO_GRB + NEO_KHZ800};
+#else
 	const int LEDS[LED_COUNT] = {LED1, LED2, LED3, LED4, LED5, LED6};
 	unsigned long _ledOnTime[LED_COUNT] = {0, 0, 0, 0, 0, 0};
 	uint8_t _ledState[LED_COUNT] = {LOW, LOW, LOW, LOW, LOW, LOW};
+#endif
 
 public:
 	/////////////////////////////////////////////////////////////////////////////
@@ -52,6 +61,14 @@ public:
 	// .. Start task
 	void Setup()
 	{
+#ifdef S3_ZERO
+		// Setup the NeoPixel
+		pixels.begin();
+		pixels.show();
+		pixels.setBrightness(255);
+		pixels.setPixelColor(0, pixels.Color(255,255,255));
+		pixels.show(); // Send the updated pixel colors to the hardware.
+#else
 		// Setup LED and turn it on
 		pinMode(LED_BUILTIN, OUTPUT);
 		pinMode(LED1, OUTPUT);
@@ -68,6 +85,7 @@ public:
 		digitalWrite(LED4, HIGH);
 		digitalWrite(LED5, HIGH);
 		digitalWrite(LED6, HIGH);
+#endif
 
 		// Setup the task
 		xTaskCreatePinnedToCore(
@@ -114,12 +132,19 @@ public:
 			loopNo++;
 			auto divider = loopNo / 4;
 			auto blinkCount = divider % 18;
+#ifdef S3_ZERO
+	//		if (blinkCount > _state * 2)
+	//			pixels.setPixelColor(0, pixels.Color(0, 255, 0));
+	//		else
+	//			pixels.setPixelColor(0, pixels.Color(0, 255, (divider % 2 ? 0 : 255)));
+	//		pixels.show(); // Send the updated pixel colors to the hardware.
+#else
 			if (blinkCount > _state * 2)
 				digitalWrite(LED_BUILTIN, LOW);
 			else
 				digitalWrite(LED_BUILTIN, divider % 2);
 
-			// Turn the additional LEDs off after they have been on for 100ms	
+			// Turn the additional LEDs off after they have been on for 100ms
 			for (int n = 0; n < LED_COUNT; n++)
 			{
 				if (_ledOnTime[n] == 0)
@@ -136,9 +161,58 @@ public:
 					continue;
 				_ledOnTime[n] = 0;
 			}
+#endif
 		}
 	}
 
+#ifdef S3_ZERO
+
+	uint32_t GetStateColor(int state)
+	{
+		switch (state)
+		{
+		case 0:
+			return pixels.Color(255, 0, 0); // Red
+		case 1:
+			return pixels.Color(0, 255, 0); // Green
+		case 2:
+			return pixels.Color(0, 0, 255); // Blue
+		case 3:
+			return pixels.Color(255, 255, 0); // Yellow
+		case 4:
+			return pixels.Color(255, 0, 255); // Magenta
+		case 5:
+			return pixels.Color(0, 255, 255); // Cyan
+		case 6:
+			return pixels.Color(255, 128, 0); // Orange
+		case 7:
+			return pixels.Color(128, 0, 255); // Purple
+		case 8:
+			return pixels.Color(255, 255, 255); // White
+		case 9:
+			return pixels.Color(0, 128, 128); // Teal
+		default:
+			return pixels.Color(255, 0, 0); // Default red
+		}
+		return 0;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// Called to start the countdown
+	void Set(int state)
+	{
+		_state = state;
+		On(state);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// Turn on the LED permanently
+	void On(int state)
+	{
+//		pixels.setPixelColor(0, GetStateColor(state));
+//		pixels.show(); 
+	}
+#else
 	///////////////////////////////////////////////////////////////////////////
 	// Called to start the countdown
 	void Set(int state)
@@ -149,12 +223,13 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// TUrn on the LED permanently
+	// Turn on the LED permanently
 	void On(int state)
 	{
 		if (0 <= state && state < LED_COUNT)
 			digitalWrite(LEDS[state], HIGH);
 	}
+#endif
 
 	void BlinkGps()
 	{
@@ -174,6 +249,10 @@ public:
 	// .. This is to prevent the LED from being turned on and off too fast
 	void Blink(int led)
 	{
+#ifdef S3_ZERO
+		pixels.setPixelColor(0, pixels.Color(255, 0, 0));
+		pixels.show();
+#else
 		if (led < 0 || led >= LED_COUNT)
 		{
 			Logf("E100 - LED %d out of range", led);
@@ -190,5 +269,6 @@ public:
 		digitalWrite(LEDS[led], HIGH);
 		_ledState[led] = HIGH;
 		_ledOnTime[led] = millis();
+#endif
 	}
 };

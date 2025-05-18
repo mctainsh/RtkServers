@@ -90,10 +90,17 @@ This project enables a LOLIN ESP32 S3 Mini to act as an RTK server sending RTK c
 | --- | --- | --- | --- |
 | 5V | 5V| 2 | 5V |
 | G | GND | 5 | GND |
-| NC | |  |  |
-| NC | |  |  |
 | 17 | TX | 3 | RX |
 | 16 | RX | 4 | TX |
+
+### LOLIN S2 Mini
+| LOLIN Mini Pin | Use | UM982 pin | Use |
+| --- | --- | --- | --- |
+| 5V | 5V| 2 | 5V |
+| G | GND | 5 | GND |
+| 17 | TX | 3 | RX |
+| 16 | RX | 4 | TX |
+| EN - 3V| | | |
 
 
 ## Software 
@@ -112,11 +119,11 @@ This project enables a LOLIN ESP32 S3 Mini to act as an RTK server sending RTK c
 
 Depending on the device you will need to upload the binary
 
- - [Upload Binary for LOLIN S3 Mini](https://github.com/mctainsh/Esp32/blob/main/RtkServers/README_Upload_S3_Mini.md)
+ - [Upload Binary for LOLIN S3 Mini](https://github.com/mctainsh/RtkServers/blob/main/UM98SXMiniRTKServer/README_Upload_S3_Mini.md)
 
  - OR
 
- - [Upload Binary for LOLIN S2 Mini](https://github.com/mctainsh/Esp32/blob/main/RtkServers/README_Upload_S2_Mini.md)
+ - [Upload Binary for LOLIN S2 Mini](https://github.com/mctainsh/RtkServers/blob/main/UM98SXMiniRTKServer/README_Upload_S2_Mini.md)
 
 ### Connect WIFI
 

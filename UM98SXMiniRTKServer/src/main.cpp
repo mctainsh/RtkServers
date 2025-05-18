@@ -86,10 +86,6 @@ void setup(void)
 
 	_ledState.Set(2);
 
-	Logln("Enable Buttons");
-	// pinMode(BUTTON_1, INPUT_PULLUP);
-	// pinMode(BUTTON_2, INPUT_PULLUP);
-
 	// Verify file IO (This can take up tpo 60s is SPIFFs not initialised)
 	Logln("Setup SPIFFS");
 	Logln("This can take up to 60 seconds ...");
@@ -129,7 +125,7 @@ void setup(void)
 		if (connectIndex >= WIFI_CONNECT_TIMEOUTS_SIZE)
 			connectIndex = WIFI_CONNECT_TIMEOUTS_SIZE - 1;
 		_wifiManager.setConfigPortalTimeout(WIFI_CONNECT_TIMEOUTS[connectIndex]);
-		Logf("\tTry WIFI Connection %ds", WIFI_CONNECT_TIMEOUTS[connectIndex]);
+		Logf("\tTry WIFI Connection %ds on '%s'", WIFI_CONNECT_TIMEOUTS[connectIndex], hostName.c_str());
 
 		_wifiManager.autoConnect(hostName.c_str(), AP_PASSWORD);
 		connectIndex++;
