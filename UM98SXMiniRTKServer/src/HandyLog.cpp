@@ -64,6 +64,9 @@ std::string Logln(const char *msg)
 #ifdef S3_MINI
 	perror(s.c_str());
 #endif
+#ifdef S3_ZERO
+	perror(s.c_str());
+#endif
 	return s;
 }
 

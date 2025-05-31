@@ -522,7 +522,8 @@ void WebPortal::ShowStatusHtml()
 	TableRow(html, 2, "Free (now)", free);
 	TableRow(html, 2, "Free (Max)", ESP.getMaxAllocHeap());
 	TableRow(html, 2, "Total", total);
-
+/*
+	// Something in the following crashes the S3 Zero
 	TableRow(html, 1, "Total PSRAM", ESP.getPsramSize());
 	TableRow(html, 1, "Free PSRAM", ESP.getFreePsram());
 	TableRow(html, 1, "spiram size", esp_spiram_get_size());
@@ -542,10 +543,7 @@ void WebPortal::ShowStatusHtml()
 
 	size_t iram_free = heap_caps_get_free_size(MALLOC_CAP_EXEC);
 	TableRow(html, 2, "IRAM (MALLOC_CAP_EXEC)", iram_free);
-
-	// TableRow(html, 1, "himem free", esp_himem_get_free_size());
-	// TableRow(html, 1, "himem phys", esp_himem_get_phys_size());
-	// TableRow(html, 1, "himem reserved", esp_himem_reserved_area_size());
+*/
 
 	html += "</table>";
 

@@ -1,4 +1,4 @@
-# UM982 RTK Server with WEMOS LOLIN S2 or S3 Mini and And some other ESP32 S3 (Multi miner)
+# UM982 RTK Server with WEMOS LOLIN S2/S3 Mini or Waveshare S3 Zero and some other ESP32 S3 (Multi miner)
 
 This project connects a UM980 or UM982 RTK GNSS receiver to a WEMOS LOLIN S3 Mini allowing you to share RTK correction data with up to three networks at one time (Some give mining rewards). The ESP32 will automatically program the UM980/2 so there is no need to mess around with terminals or or the UPrecise software.
 
@@ -82,13 +82,21 @@ This project enables a LOLIN ESP32 S3 Mini to act as an RTK server sending RTK c
  
 
 ## Wiring Diagram
-
+<table>
+<tr><td>
 <img src="https://github.com/mctainsh/RtkServers/blob/main/Photos/Wiring.png?raw=true" Height='500'/><br/>
+</td>
+<td>
+<img src="https://github.com/mctainsh/RtkServers/blob/main/Photos/WiringS3Zero.png?raw=true" Height='500'/><br/>
+</td>
+</tr>
+</table>
+
 
 ### LOLIN S3 Mini
 | LOLIN Mini Pin | Use | UM982 pin | Use |
 | --- | --- | --- | --- |
-| 5V | 5V| 2 | 5V |
+| 5V | 5V| 2 | 5V (See note) |
 | G | GND | 5 | GND |
 | 17 | TX | 3 | RX |
 | 16 | RX | 4 | TX |
@@ -96,12 +104,22 @@ This project enables a LOLIN ESP32 S3 Mini to act as an RTK server sending RTK c
 ### LOLIN S2 Mini
 | LOLIN Mini Pin | Use | UM982 pin | Use |
 | --- | --- | --- | --- |
-| 5V | 5V| 2 | 5V |
+| 5V | 5V| 2 | 5V (See note) |
 | G | GND | 5 | GND |
 | 17 | TX | 3 | RX |
 | 16 | RX | 4 | TX |
 | EN - 3V| | | |
 
+### Waveshare S3 Zero
+| S3 Zero Pin | Use | UM982 pin | Use |
+| --- | --- | --- | --- |
+| 5V | 5V| 2 | 5V (See note) |
+| G | GND | 5 | GND |
+| 1 | TX | 3 | RX |
+| 2 | RX | 4 | TX |
+
+### NOTE :
+Some UM98x models suffer from overheating onboard voltage regulator. To reduce this wither cool the UM98x with a fan or place a 1N4001 Diode on the between the 5V on ESP32 and UN98x. Place the diode with the side with the line closest the UM98x.   
 
 ## Software 
 
@@ -119,7 +137,7 @@ This project enables a LOLIN ESP32 S3 Mini to act as an RTK server sending RTK c
 
 Depending on the device you will need to upload the binary
 
- - [Upload Binary for LOLIN S3 Mini](https://github.com/mctainsh/RtkServers/blob/main/UM98SXMiniRTKServer/README_Upload_S3_Mini.md)
+ - [Upload Binary for LOLIN S3 Mini or S3 Zero](https://github.com/mctainsh/RtkServers/blob/main/UM98SXMiniRTKServer/README_Upload_S3_Mini.md)
 
  - OR
 

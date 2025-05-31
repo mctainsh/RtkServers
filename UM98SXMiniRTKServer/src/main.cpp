@@ -31,10 +31,10 @@ void LoadBaseLocation();
 
 WiFiManager _wifiManager;
 
-unsigned long _loopWaitTime = 0;		 // Time of last second
-int _loopPersSecondCount = 0;			 // Number of times the main loops runs in a second
-unsigned long _lastButtonPress = 0;		 // Time of last button press to turn off display on T-Display-S3
-//unsigned long _recheckWifiAliveTime = 0; // Time we last checked for wifi alive
+unsigned long _loopWaitTime = 0;	// Time of last second
+int _loopPersSecondCount = 0;		// Number of times the main loops runs in a second
+unsigned long _lastButtonPress = 0; // Time of last button press to turn off display on T-Display-S3
+// unsigned long _recheckWifiAliveTime = 0; // Time we last checked for wifi alive
 
 WebPortal _webPortal;
 
@@ -64,7 +64,7 @@ void setup(void)
 	perror("RTL Server - Starting");
 	perror(APP_VERSION);
 	_ledState.Setup(); // Setup the LED state task
-	
+
 	// No logging before here
 	Serial.begin(115200); // Using perror() instead
 
@@ -145,6 +145,7 @@ void setup(void)
 
 	_ledState.Set(6);
 	_ledState.On(0);
+	_ledState.StartMainLoopTask(); // Start the main loop task
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -160,7 +161,7 @@ void loop()
 		auto free = ESP.getFreeHeap();
 		auto total = ESP.getHeapSize();
 
-	float temperature = _history.CheckTemperatureLoop(); // Read the current temperature
+		float temperature = _history.CheckTemperatureLoop(); // Read the current temperature
 
 		// Update the loop performance counter
 		auto notes = StringPrintf("Loop %d G:%ld 1:%ld, 2:%ld 3:%ld Heap:%d%% %.1f°C %s\n",
