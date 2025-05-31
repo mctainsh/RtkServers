@@ -94,7 +94,7 @@ This project enables a LOLIN ESP32 S3 Mini to act as an RTK server sending RTK c
 
 
 ### LOLIN S3 Mini
-| LOLIN Mini Pin | Use | UM982 pin | Use |
+| LOLIN Mini | Pin Use | UM982 | Pin Use |
 | --- | --- | --- | --- |
 | 5V | 5V| 2 | 5V (See note) |
 | G | GND | 5 | GND |
@@ -102,7 +102,7 @@ This project enables a LOLIN ESP32 S3 Mini to act as an RTK server sending RTK c
 | 16 | RX | 4 | TX |
 
 ### LOLIN S2 Mini
-| LOLIN Mini Pin | Use | UM982 pin | Use |
+| LOLIN Mini | Pin Use | UM982 | Pin Use |
 | --- | --- | --- | --- |
 | 5V | 5V| 2 | 5V (See note) |
 | G | GND | 5 | GND |
@@ -111,12 +111,12 @@ This project enables a LOLIN ESP32 S3 Mini to act as an RTK server sending RTK c
 | EN - 3V| | | |
 
 ### Waveshare S3 Zero
-| S3 Zero Pin | Use | UM982 pin | Use |
+| S3 Zero | Pin Use | UM982 | Pin Use |
 | --- | --- | --- | --- |
 | 5V | 5V| 2 | 5V (See note) |
 | G | GND | 5 | GND |
-| 1 | TX | 3 | RX |
-| 2 | RX | 4 | TX |
+| 1 | RX | 4 | TX |
+| 2 | TX | 3 | RX |
 
 ### NOTE :
 Some UM98x models suffer from overheating onboard voltage regulator. To reduce this wither cool the UM98x with a fan or place a 1N4001 Diode on the between the 5V on ESP32 and UN98x. Place the diode with the side with the line closest the UM98x.   
