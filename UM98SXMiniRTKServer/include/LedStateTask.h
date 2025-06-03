@@ -21,7 +21,6 @@
 #ifdef S3_ZERO
 #include <Adafruit_NeoPixel.h>
 #define LED_PIN 21
-#define PIXEL_BRIGHTNESS 127
 #endif
 
 // S2 Mini
@@ -87,7 +86,7 @@ public:
 		// Setup the task
 		xTaskCreatePinnedToCore(
 			TaskWrapper,
-			"LedFlasher",	  // Task name
+			"LedFlasher",	  // Task name.
 			5000,			  // Stack size (bytes)
 			this,			  // Parameter
 			25,				  // Task priority
@@ -122,7 +121,7 @@ public:
 #ifdef S3_ZERO
 		Adafruit_NeoPixel pixels{2, LED_PIN, NEO_RGB + NEO_KHZ800};
 		pixels.begin();
-		pixels.setBrightness(PIXEL_BRIGHTNESS);
+		pixels.setBrightness(127);
 		pixels.show(); // Initialize all pixels to 'off'
 #endif
 
@@ -167,6 +166,7 @@ public:
 
 #else
 			// Blink the build in LED the number of times matching the startup state
+			vTaskDelay(50 / portTICK_PERIOD_MS);
 			loopNo++;
 			auto divider = loopNo / 4;
 			auto blinkCount = divider % 18;

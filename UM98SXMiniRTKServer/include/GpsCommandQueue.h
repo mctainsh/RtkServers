@@ -216,12 +216,11 @@ public:
 	// .. reset command looks like "$devicename,COM1*67"
 	bool HasDeviceReset(const std::string &str)
 	{
-		if (_resetProcessed)
-			return false;
-
 		const std::string match = "$devicename,COM";
-		if (str.compare(0, match.size(), match) != 0)
-			return false;
+		bool gotReset =str.compare(0, match.size(), match) == 0;
+
+		if (_resetProcessed)
+			return gotReset;
 
 		// Depending on the reset count we send different parameters
 		// First reset we set the signal group (This will only reset if SG changes)

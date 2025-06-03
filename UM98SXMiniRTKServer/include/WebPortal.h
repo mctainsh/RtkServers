@@ -483,6 +483,7 @@ void WebPortal::ShowStatusHtml()
 	TableRow(html, 1, "Device type", _gpsParser.GetCommandQueue().GetDeviceType());
 	TableRow(html, 1, "Device firmware", _gpsParser.GetCommandQueue().GetDeviceFirmware());
 	TableRow(html, 1, "Device serial #", _gpsParser.GetCommandQueue().GetDeviceSerial());
+	TableRow(html, 1, "WiFi Strength", WiFi.RSSI());
 
 	TableRow(html, 1, "Bytes received", _gpsParser.GetGpsBytesRec());
 	TableRow(html, 1, "Reset count", _gpsParser.GetGpsResetCount());
