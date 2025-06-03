@@ -30,7 +30,7 @@ private:
 	void GraphHtml() const;
 	void GraphDetail(std::string &html, std::string divId, const NTRIPServer &server) const;
 	void GraphTemperature() const;
-	void GraphArray(std::string &html, std::string divId, const char *pBytes, int length) const;
+	void GraphArray(std::string &html, std::string divId, std::string title, const char *pBytes, int length) const;
 	void HtmlLog(const char *title, const std::vector<std::string> &log) const;
 	void OnSaveParamsCallback();
 
@@ -190,7 +190,7 @@ void WebPortal::OnSaveParamsCallback()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Plot a single graph
+/// @brief Plot all the caster graphs
 void WebPortal::GraphHtml() const
 {
 	std::string html = "<!DOCTYPE html><html><head>\
@@ -232,7 +232,7 @@ void WebPortal::GraphDetail(std::string &html, std::string divId, const NTRIPSer
 		html += StringPrintf("%d", server.GetSendMicroSeconds()[n]);
 	}
 	html += "];";
-	html += "Plotly.newPlot('myPlot" + divId + "', [{x:xValues" + divId + ", y:yValues" + divId + ", mode:'lines'}], {title: '" + server.GetAddress() + " (Mbps)'});";
+	html += "Plotly.newPlot('myPlot" + divId + "', [{x:xValues" + divId + ", y:yValues" + divId + ", mode:'lines'}], {title: '" + server.GetAddress() + " (&#181;s)'});";
 	html += "</script>\n";
 }
 
@@ -247,7 +247,7 @@ void WebPortal::GraphTemperature() const
 	<body style='padding:10px;'>\
 	<h3>Temperature C</h3>";
 
-	GraphArray(html, "T", _history.GetTemperatures(), TEMP_HISTORY_SIZE);
+	GraphArray(html, "T", "CPU Temperature (&deg;C)", _history.GetTemperatures(), TEMP_HISTORY_SIZE);
 
 	html += "</body>";
 	html += "</html>";
@@ -255,7 +255,7 @@ void WebPortal::GraphTemperature() const
 	Serial.printf("\tSent %d bytes\n", html.length());
 }
 
-void WebPortal::GraphArray(std::string &html, std::string divId, const char *pBytes, int length) const
+void WebPortal::GraphArray(std::string &html, std::string divId, std::string title, const char *pBytes, int length) const
 {
 	html += "<div id='myPlot" + divId + "' style='width:100%;max-width:700px'></div>\n";
 	html += "<script>";
@@ -275,9 +275,12 @@ void WebPortal::GraphArray(std::string &html, std::string divId, const char *pBy
 		html += StringPrintf("%d", pBytes[n]);
 	}
 	html += "];";
-	html += "Plotly.newPlot('myPlot" + divId + "', [{x:xValues" + divId + ", y:yValues" + divId + ", mode:'lines'}], {title: 'Degrees (Mbps)'});";
+	html += "Plotly.newPlot('myPlot" + divId + "', [{x:xValues" + divId + ", y:yValues" + divId + ", mode:'lines'}], {title: '";
+	html += title;
+	html += "'});";
 	html += "</script>\n";
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Display a log in html format
@@ -400,8 +403,8 @@ void ServerStatsHtml(NTRIPServer &server, std::string &html)
 	TableRow(html, 3, "Queue overflows", server.GetQueueOverflows());
 	TableRow(html, 3, "Send timeouts", server.GetTotalTimeouts());
 	TableRow(html, 3, "Expired packets", server.GetExpiredPackets());
-	TableRow(html, 3, "Avg send (us)", server.AverageSendTime());
-	TableRow(html, 3, "Max send (us)", server.GetMaxSendTime());
+	TableRow(html, 3, "Avg send (&micro;s)", server.AverageSendTime());
+	TableRow(html, 3, "Max send (&#181;s)", server.GetMaxSendTime());
 	TableRow(html, 3, "Max Stack Height", server.GetMaxStackHeight());
 	html += "</td></Table>";
 }
