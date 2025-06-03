@@ -217,10 +217,13 @@ public:
 	bool HasDeviceReset(const std::string &str)
 	{
 		const std::string match = "$devicename,COM";
-		bool gotReset =str.compare(0, match.size(), match) == 0;
+		bool isReset =str.compare(0, match.size(), match) == 0;
 
 		if (_resetProcessed)
-			return gotReset;
+			return isReset;
+
+		if (!isReset)
+			return false;
 
 		// Depending on the reset count we send different parameters
 		// First reset we set the signal group (This will only reset if SG changes)
