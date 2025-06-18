@@ -59,7 +59,15 @@ This project enables a LOLIN ESP32 S3 Mini to act as an RTK server sending RTK c
 	<table>
 		<tr>
 			<td>
-				<b>Wemos LOLIN S3 Min</b> - <i>(Preferred)</i> ESP32 S3. AliExpress for US$10.00.<br/> [Not an affiliate link shop with care](https://vi.aliexpress.com/item/1005005449219195.html)
+				<b>Waveshare S3 Zero</b> - <i>(Preferred)</i> US$10.00.<br/> [Buy](https://www.waveshare.com/esp32-s3-zero.htm)
+			</td>
+			<td>
+				<img src="https://github.com/mctainsh/RtkServers/blob/main/Photos/ESP32-S3_Zero.png" Height='70px'/>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<b>Wemos LOLIN S3 Min</b> - ESP32 S3. AliExpress for US$10.00.<br/> [Not an affiliate link shop with care](https://vi.aliexpress.com/item/1005005449219195.html)
 			</td>
 			<td>
 				<img src="https://www.wemos.cc/en/latest/_static/boards/s3_mini_v1.0.0_1_16x16.jpg" Height='70px'/>
