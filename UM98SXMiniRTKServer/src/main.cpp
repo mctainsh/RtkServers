@@ -152,7 +152,7 @@ void setup(void)
 // Loop here
 void loop()
 {
-	// Trigger something every second
+	// Trigger something 10 seconds
 	int t = millis();
 	_loopPersSecondCount++;
 	if ((t - _loopWaitTime) > 10000)
